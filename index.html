@@ -2,10 +2,168 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>キャラ名入力</title>
+  <title>キャラ情報入力</title>
+  <style>
+    .inline-container {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .trait-container {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .status-table {
+      margin-top: 20px;
+    }
+    table {
+      border-collapse: collapse;
+    }
+    th, td {
+      border: 1px solid #000;
+      padding: 5px 10px;
+      text-align: center;
+    }
+    input[readonly] {
+      border: none;
+      background: transparent;
+      text-align: center;
+      width: 40px;
+    }
+    input[type="number"] {
+      width: 40px;
+      text-align: center;
+    }
+  </style>
 </head>
 <body>
+  <h2>キャラクターシート</h2>
+
   <label for="name">キャラクター名：</label>
   <input type="text" id="name" name="name" placeholder="名前を入力">
+
+  <br><br>
+
+  <div class="inline-container">
+    <div>
+      <label for="age">年齢：</label>
+      <input type="number" id="age" name="age" placeholder="年齢を入力">
+    </div>
+    <div>
+      <label for="gender">性別：</label>
+      <input type="text" id="gender" name="gender" placeholder="性別を入力">
+    </div>
+  </div>
+
+  <br>
+
+  <div class="trait-container">
+    <label for="trait">特色：</label>
+    <select id="trait" name="trait" onchange="updateRegion()">
+      <option value="">選んでください</option>
+      <option value="白">白</option>
+      <option value="黄">黄</option>
+      <option value="橙">橙</option>
+      <option value="赤">赤</option>
+      <option value="紫">紫</option>
+      <option value="青">青</option>
+      <option value="緑">緑</option>
+      <option value="黒">黒</option>
+    </select>
+    <span id="regionName"></span>
+  </div>
+
+  <div class="status-table">
+    <h3>メインステータス</h3>
+    <p>使用可能ポイント：<span id="remainingPoints">250</span></p>
+    <table>
+      <tr>
+        <th>体</th>
+        <th>精</th>
+        <th>筋</th>
+        <th>俊</th>
+        <th>器</th>
+        <th>知</th>
+      </tr>
+      <tr>
+        <td><input type="number" id="sta_体" value="30" readonly></td>
+        <td><input type="number" id="sta_精" value="30" readonly></td>
+        <td><input type="number" id="sta_筋" value="30" readonly></td>
+        <td><input type="number" id="sta_俊" value="30" readonly></td>
+        <td><input type="number" id="sta_器" value="30" readonly></td>
+        <td><input type="number" id="sta_知" value="30" readonly></td>
+      </tr>
+      <tr>
+        <td><input type="number" id="add_体" value="0" min="0" oninput="updateStats()"></td>
+        <td><input type="number" id="add_精" value="0" min="0" oninput="updateStats()"></td>
+        <td><input type="number" id="add_筋" value="0" min="0" oninput="updateStats()"></td>
+        <td><input type="number" id="add_俊" value="0" min="0" oninput="updateStats()"></td>
+        <td><input type="number" id="add_器" value="0" min="0" oninput="updateStats()"></td>
+        <td><input type="number" id="add_知" value="0" min="0" oninput="updateStats()"></td>
+      </tr>
+    </table>
+  </div>
+
+  <script>
+    function updateRegion() {
+      const trait = document.getElementById("trait").value;
+      const regionMap = {
+        "白": "シストベリ",
+        "黄": "黄華",
+        "橙": "燈火祖界",
+        "赤": "極紅",
+        "紫": "フィーリラ",
+        "青": "アジュール",
+        "緑": "ヴェルディア",
+        "黒": "メランペプロス"
+      };
+      document.getElementById("regionName").textContent = regionMap[trait] || "";
+    }
+
+    function updateStats() {
+      const base = 30;
+      const keys = ["体", "精", "筋", "俊", "器", "知"];
+      let used = 0;
+
+      // 使用ポイント計算
+      keys.forEach(key => {
+        let input = document.getElementById("add_" + key);
+        let value = parseInt(input.value);
+        if (isNaN(value) || value < 0) {
+          value = 0;
+          input.value = 0;
+        }
+        used += value;
+      });
+
+      let remaining = 250 - used;
+
+      // 超過時リセット
+      if (remaining < 0) {
+        alert("使用可能ポイントを超えています！");
+        keys.forEach(key => {
+          document.getElementById("add_" + key).value = 0;
+          document.getElementById("sta_" + key).value = base;
+        });
+        document.getElementById("remainingPoints").textContent = 250;
+        document.getElementById("remainingPoints").style.color = "black";
+        return;
+      }
+
+      document.getElementById("remainingPoints").textContent = remaining;
+      document.getElementById("remainingPoints").style.color = "black";
+
+      keys.forEach(key => {
+        const input = document.getElementById("add_" + key);
+        const add = parseInt(input.value) || 0;
+        document.getElementById("sta_" + key).value = base + add;
+
+        // 上限設定
+        input.max = add + remaining;
+      });
+    }
+  </script>
 </body>
 </html>
