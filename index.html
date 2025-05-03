@@ -96,12 +96,12 @@
         <td><input type="number" id="sta_知" value="30" readonly></td>
       </tr>
       <tr>
-        <td><input type="number" id="add_体" value="0" min="0" oninput="updateStats()"></td>
-        <td><input type="number" id="add_精" value="0" min="0" oninput="updateStats()"></td>
-        <td><input type="number" id="add_筋" value="0" min="0" oninput="updateStats()"></td>
-        <td><input type="number" id="add_俊" value="0" min="0" oninput="updateStats()"></td>
-        <td><input type="number" id="add_器" value="0" min="0" oninput="updateStats()"></td>
-        <td><input type="number" id="add_知" value="0" min="0" oninput="updateStats()"></td>
+        <td><input type="number" id="add_体" placeholder="0" min="0" oninput="updateStats()"></td>
+        <td><input type="number" id="add_精" placeholder="0" min="0" oninput="updateStats()"></td>
+        <td><input type="number" id="add_筋" placeholder="0" min="0" oninput="updateStats()"></td>
+        <td><input type="number" id="add_俊" placeholder="0" min="0" oninput="updateStats()"></td>
+        <td><input type="number" id="add_器" placeholder="0" min="0" oninput="updateStats()"></td>
+        <td><input type="number" id="add_知" placeholder="0" min="0" oninput="updateStats()"></td>
       </tr>
     </table>
   </div>
@@ -127,24 +127,22 @@
       const keys = ["体", "精", "筋", "俊", "器", "知"];
       let used = 0;
 
-      // 使用ポイント計算
       keys.forEach(key => {
         let input = document.getElementById("add_" + key);
         let value = parseInt(input.value);
         if (isNaN(value) || value < 0) {
           value = 0;
-          input.value = 0;
+          input.value = "";
         }
         used += value;
       });
 
       let remaining = 250 - used;
 
-      // 超過時リセット
       if (remaining < 0) {
         alert("使用可能ポイントを超えています！");
         keys.forEach(key => {
-          document.getElementById("add_" + key).value = 0;
+          document.getElementById("add_" + key).value = "";
           document.getElementById("sta_" + key).value = base;
         });
         document.getElementById("remainingPoints").textContent = 250;
@@ -159,8 +157,6 @@
         const input = document.getElementById("add_" + key);
         const add = parseInt(input.value) || 0;
         document.getElementById("sta_" + key).value = base + add;
-
-        // 上限設定
         input.max = add + remaining;
       });
     }
