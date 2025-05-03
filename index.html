@@ -4,15 +4,11 @@
   <title>TRPGキャラクターシート</title>
   <style>
     body { font-family: sans-serif; padding: 20px; }
-    input[type="text"], input[type="number"] {
-      width: 80px;
-    }
+    input[type="text"], input[type="number"] { width: 60px; }
     table { border-collapse: collapse; margin-bottom: 20px; }
     td, th { border: 1px solid #ccc; padding: 4px 8px; text-align: center; }
     .status-table { margin-bottom: 40px; }
-    .skill-row input[type="text"]:read-only {
-      background-color: #eee;
-    }
+    .skill-row input[type="text"]:disabled { background-color: #eee; }
   </style>
 </head>
 <body>
@@ -32,80 +28,120 @@
       <option value="黒">黒</option>
     </select>
   </label>
-  <span id="region">シストベリ</span>  <!-- スキルステータス -->  <div class="status-table">
-    <h3>スキルステータス</h3>
-    <p>スキルポイント：<span id="skillPoints">1000</span></p>
-    <table id="skillTable">
-      <tr>
-        <th>技能</th><th>補足</th><th>割り振り</th>
+  <span id="region">シストベリ</span>  <div class="status-table">
+    <h3>メインステータス</h3>
+    <p>使用可能ポイント：<span id="remainingPoints">250</span></p>
+    <table>
+      <tr><th></th><th>体力</th><th>精神</th><th>筋力</th><th>俊敏</th><th>器用</th><th>知力</th></tr>
+      <tr><td>初期値</td>
+        <td><input type="number" id="sta_体" value="30" readonly></td>
+        <td><input type="number" id="sta_精" value="30" readonly></td>
+        <td><input type="number" id="sta_筋" value="30" readonly></td>
+        <td><input type="number" id="sta_俊" value="30" readonly></td>
+        <td><input type="number" id="sta_器" value="30" readonly></td>
+        <td><input type="number" id="sta_知" value="30" readonly></td>
+      </tr>
+      <tr><td>割り振り</td>
+        <td><input type="number" id="add_体" placeholder="" oninput="updateStats()"></td>
+        <td><input type="number" id="add_精" placeholder="" oninput="updateStats()"></td>
+        <td><input type="number" id="add_筋" placeholder="" oninput="updateStats()"></td>
+        <td><input type="number" id="add_俊" placeholder="" oninput="updateStats()"></td>
+        <td><input type="number" id="add_器" placeholder="" oninput="updateStats()"></td>
+        <td><input type="number" id="add_知" placeholder="" oninput="updateStats()"></td>
       </tr>
     </table>
-    <button onclick="addSkillRow()">＋追加</button>
+  </div>  <div class="status-table">
+    <h3>戦闘ステータス</h3>
+    <p>戦闘ステータス用ポイント：<span id="combatPoints">0</span></p>
+    <table>
+      <tr><th></th><th>HP</th><th>MP</th><th>装甲値</th><th>速度</th><th>後隙</th></tr>
+      <tr><td>初期値</td>
+        <td><input type="number" id="sta_HP" value="0" readonly></td>
+        <td><input type="number" id="sta_MP" value="0" readonly></td>
+        <td><input type="number" id="sta_DEF" value="0" readonly></td>
+        <td><input type="number" id="sta_SPD" value="0" readonly></td>
+        <td><input type="number" id="sta_DLY" value="0" readonly></td>
+      </tr>
+      <tr><td>割り振り</td>
+        <td><input type="number" id="add_HP" oninput="updateStats()"></td>
+        <td><input type="number" id="add_MP" oninput="updateStats()"></td>
+        <td><input type="number" id="add_DEF" oninput="updateStats()"></td>
+        <td><input type="number" id="add_SPD" oninput="updateStats()"></td>
+        <td><input type="number" id="add_DLY" oninput="updateStats()"></td>
+      </tr>
+      <tr><td>合計</td>
+        <td><input type="number" id="total_HP" readonly></td>
+        <td><input type="number" id="total_MP" readonly></td>
+        <td><input type="number" id="total_DEF" readonly></td>
+        <td><input type="number" id="total_SPD" readonly></td>
+        <td><input type="number" id="total_DLY" readonly></td>
+      </tr>
+    </table>
+  </div>  <div class="status-table">
+    <h3>スキルステータス</h3>
+    <p>スキルポイント：<span id="skillPoints">1000</span></p>
+    <table id="skillsTable">
+      <tr><th>技能</th><th>補足</th><th>割り振り</th></tr>
+    </table>
+    <button onclick="addSkillRow()">技能を追加</button>
   </div>  <script>
-    const initialSkills = [
-      "威圧", "交渉", "乗馬", "水泳", "登攀", "追跡",
-      "知識", "芸術", "創作", "礼儀作法", "回避", "隠密"
+    const skillPointsElem = document.getElementById("skillPoints");
+    let skillPointsUsed = 0;
+
+    const predefinedSkills = [
+      ["威圧", false], ["交渉", false], ["乗馬", false], ["水泳", false],
+      ["登攀", false], ["追跡", false], ["知識", true], ["芸術", true],
+      ["創作", true], ["礼儀作法", false], ["回避", false], ["隠密", false]
     ];
 
-    function isSupplementAllowed(skill) {
-      return ["知識", "芸術", "創作"].includes(skill);
+    const skillsTable = document.getElementById("skillsTable");
+
+    function createSkillRow(name = "", hint = false, isEditable = true) {
+      const row = document.createElement("tr");
+      row.className = "skill-row";
+
+      const nameTd = document.createElement("td");
+      const nameInput = document.createElement("input");
+      nameInput.type = "text";
+      nameInput.value = name;
+      if (!isEditable) nameInput.disabled = true;
+      nameTd.appendChild(nameInput);
+
+      const hintTd = document.createElement("td");
+      const hintInput = document.createElement("input");
+      hintInput.type = "text";
+      if (!hint) hintInput.disabled = true;
+      hintTd.appendChild(hintInput);
+
+      const valueTd = document.createElement("td");
+      const valueInput = document.createElement("input");
+      valueInput.type = "number";
+      valueInput.value = 0;
+      valueInput.oninput = updateSkillPoints;
+      valueTd.appendChild(valueInput);
+
+      row.appendChild(nameTd);
+      row.appendChild(hintTd);
+      row.appendChild(valueTd);
+      skillsTable.appendChild(row);
     }
 
-    function createSkillRow(skillName = "", canEdit = true) {
-      const tr = document.createElement("tr");
-      tr.classList.add("skill-row");
-
-      const skillCell = document.createElement("td");
-      const skillInput = document.createElement("input");
-      skillInput.type = "text";
-      skillInput.value = skillName;
-      if (!canEdit) skillInput.readOnly = true;
-      skillCell.appendChild(skillInput);
-
-      const suppCell = document.createElement("td");
-      const suppInput = document.createElement("input");
-      suppInput.type = "text";
-      if (!canEdit && !isSupplementAllowed(skillName)) suppInput.readOnly = true;
-      suppCell.appendChild(suppInput);
-
-      const pointCell = document.createElement("td");
-      const pointInput = document.createElement("input");
-      pointInput.type = "number";
-      pointInput.min = 0;
-      pointInput.value = 0;
-      pointInput.oninput = updateSkillPoints;
-      pointCell.appendChild(pointInput);
-
-      tr.appendChild(skillCell);
-      tr.appendChild(suppCell);
-      tr.appendChild(pointCell);
-
-      document.getElementById("skillTable").appendChild(tr);
-    }
+    predefinedSkills.forEach(([name, hint]) => createSkillRow(name, hint, false));
 
     function addSkillRow() {
-      createSkillRow("", true);
+      createSkillRow("", true, true);
     }
 
     function updateSkillPoints() {
-      let used = 0;
-      const rows = document.querySelectorAll(".skill-row");
-      rows.forEach(row => {
-        const pointInput = row.children[2].children[0];
-        let value = parseInt(pointInput.value) || 0;
-        const prevValue = parseInt(pointInput.getAttribute("data-prev")) || 0;
-        pointInput.setAttribute("data-prev", value);
-
-        // ポイント計算：100を超えるとコスト2倍
-        if (value <= 100) {
-          used += value;
-        } else {
-          used += 100 + (value - 100) * 2;
-        }
+      let total = 0;
+      const inputs = skillsTable.querySelectorAll(".skill-row");
+      inputs.forEach(row => {
+        const val = parseInt(row.children[2].firstChild.value) || 0;
+        total += val <= 100 ? val : (100 + (val - 100) * 2);
       });
-      const remaining = 1000 - used;
-      document.getElementById("skillPoints").textContent = remaining;
-      document.getElementById("skillPoints").style.color = remaining < 0 ? "red" : "black";
+      skillPointsUsed = total;
+      skillPointsElem.textContent = 1000 - skillPointsUsed;
+      skillPointsElem.style.color = skillPointsUsed > 1000 ? "red" : "black";
     }
 
     function updateRegion() {
@@ -116,11 +152,5 @@
       const color = document.getElementById("color").value;
       document.getElementById("region").textContent = regionMap[color];
     }
-
-    // 初期技能追加
-    window.onload = () => {
-      initialSkills.forEach(skill => createSkillRow(skill, false));
-      updateSkillPoints();
-    };
   </script></body>
 </html>
