@@ -5,169 +5,154 @@
   <style>
     body { font-family: sans-serif; padding: 20px; }
     input[type="text"], input[type="number"] {
-      width: 80px;
+      width: 100px;
     }
     table { border-collapse: collapse; margin-bottom: 20px; }
     td, th { border: 1px solid #ccc; padding: 4px 8px; text-align: center; }
     .status-table { margin-bottom: 40px; }
+    .skill-block, .custom-skill { margin-top: 10px; border: 1px solid #ccc; padding: 10px; width: fit-content; }
   </style>
 </head>
 <body>
   <h1>TRPGキャラクターシート</h1>
-  <label>名前：<input type="text"></label><br>
+  <label>名前：<input type="text"></label>
   <label>年齢：<input type="number"></label>
-  <label>性別：<input type="text"></label><br><label>特色： <select id="color" onchange="updateRegion()"> <option value="白">白</option><option value="黄">黄</option><option value="橙">橙</option> <option value="赤">赤</option><option value="紫">紫</option><option value="青">青</option> <option value="緑">緑</option><option value="黒">黒</option> </select> </label> <span id="region">シストベリ</span>
-
-  <div class="status-table">
+  <label>性別：<input type="text"></label><br>
+  <label>特色：
+    <select id="color" onchange="updateRegion()">
+      <option value="白">白</option>
+      <option value="黄">黄</option>
+      <option value="橙">橙</option>
+      <option value="赤">赤</option>
+      <option value="紫">紫</option>
+      <option value="青">青</option>
+      <option value="緑">緑</option>
+      <option value="黒">黒</option>
+    </select>
+  </label>
+  <span id="region">シストベリ</span>  <div class="status-table">
     <h3>メインステータス</h3>
     <p>使用可能ポイント：<span id="remainingPoints">250</span></p>
     <table>
       <tr><th></th><th>体力</th><th>精神</th><th>筋力</th><th>俊敏</th><th>器用</th><th>知力</th></tr>
-      <tr>
-        <td>初期値</td>
-        <td><input type="number" id="sta_体" value="30" readonly></td>
-        <td><input type="number" id="sta_精" value="30" readonly></td>
-        <td><input type="number" id="sta_筋" value="30" readonly></td>
-        <td><input type="number" id="sta_俊" value="30" readonly></td>
-        <td><input type="number" id="sta_器" value="30" readonly></td>
-        <td><input type="number" id="sta_知" value="30" readonly></td>
-      </tr>
-      <tr>
-        <td>割り振り</td>
-        <td><input type="number" id="add_体" oninput="updateStats()"></td>
-        <td><input type="number" id="add_精" oninput="updateStats()"></td>
-        <td><input type="number" id="add_筋" oninput="updateStats()"></td>
-        <td><input type="number" id="add_俊" oninput="updateStats()"></td>
-        <td><input type="number" id="add_器" oninput="updateStats()"></td>
-        <td><input type="number" id="add_知" oninput="updateStats()"></td>
-      </tr>
+      <tr><td>初期値</td><td><input type="number" id="sta_体" value="30" readonly></td><td><input type="number" id="sta_精" value="30" readonly></td><td><input type="number" id="sta_筋" value="30" readonly></td><td><input type="number" id="sta_俊" value="30" readonly></td><td><input type="number" id="sta_器" value="30" readonly></td><td><input type="number" id="sta_知" value="30" readonly></td></tr>
+      <tr><td>割り振り</td><td><input type="number" id="add_体" oninput="updateStats()"></td><td><input type="number" id="add_精" oninput="updateStats()"></td><td><input type="number" id="add_筋" oninput="updateStats()"></td><td><input type="number" id="add_俊" oninput="updateStats()"></td><td><input type="number" id="add_器" oninput="updateStats()"></td><td><input type="number" id="add_知" oninput="updateStats()"></td></tr>
     </table>
   </div>  <div class="status-table">
     <h3>戦闘ステータス</h3>
     <p>戦闘ステータス用ポイント：<span id="combatPoints">0</span></p>
     <table>
       <tr><th></th><th>HP</th><th>MP</th><th>装甲値</th><th>速度</th><th>後隙</th></tr>
-      <tr>
-        <td>初期値</td>
-        <td><input type="number" id="sta_HP" value="0" readonly></td>
-        <td><input type="number" id="sta_MP" value="0" readonly></td>
-        <td><input type="number" id="sta_DEF" value="0" readonly></td>
-        <td><input type="number" id="sta_SPD" value="0" readonly></td>
-        <td><input type="number" id="sta_DLY" value="0" readonly></td>
-      </tr>
-      <tr>
-        <td>割り振り</td>
-        <td><input type="number" id="add_HP" oninput="updateStats()"></td>
-        <td><input type="number" id="add_MP" oninput="updateStats()"></td>
-        <td><input type="number" id="add_DEF" oninput="updateStats()"></td>
-        <td><input type="number" id="add_SPD" oninput="updateStats()"></td>
-        <td><input type="number" id="add_DLY" oninput="updateStats()"></td>
-      </tr>
-      <tr>
-        <td>合計</td>
-        <td><input type="number" id="total_HP" readonly></td>
-        <td><input type="number" id="total_MP" readonly></td>
-        <td><input type="number" id="total_DEF" readonly></td>
-        <td><input type="number" id="total_SPD" readonly></td>
-        <td><input type="number" id="total_DLY" readonly></td>
-      </tr>
+      <tr><td>初期値</td><td><input type="number" id="sta_HP" value="0" readonly></td><td><input type="number" id="sta_MP" value="0" readonly></td><td><input type="number" id="sta_DEF" value="0" readonly></td><td><input type="number" id="sta_SPD" value="0" readonly></td><td><input type="number" id="sta_DLY" value="0" readonly></td></tr>
+      <tr><td>割り振り</td><td><input type="number" id="add_HP" oninput="updateStats()"></td><td><input type="number" id="add_MP" oninput="updateStats()"></td><td><input type="number" id="add_DEF" oninput="updateStats()"></td><td><input type="number" id="add_SPD" oninput="updateStats()"></td><td><input type="number" id="add_DLY" oninput="updateStats()"></td></tr>
+      <tr><td>合計</td><td><input type="number" id="total_HP" readonly></td><td><input type="number" id="total_MP" readonly></td><td><input type="number" id="total_DEF" readonly></td><td><input type="number" id="total_SPD" readonly></td><td><input type="number" id="total_DLY" readonly></td></tr>
     </table>
   </div>  <div class="status-table">
-    <h3>スキル</h3>
+    <h3>技能</h3>
     <p>スキルポイント：<span id="skillPoints">1000</span></p>
-    <button onclick="addSkill()">スキルを追加</button>
-    <div id="skillContainer"></div>
+    <button onclick="addCustomSkill()">技能追加</button>
+    <div id="skillsContainer"></div>
+  </div>  <div class="status-table">
+    <h3>スキル</h3>
+    <button onclick="addSkillBlock()">スキル追加</button>
+    <div id="skillBlocks"></div>
   </div>  <script>
+    const defaultSkills = [
+      "威圧", "交渉", "乗馬", "水泳", "登攀", "追跡",
+      "知識", "芸術", "創作", "礼儀作法", "回避", "隠密"
+    ];
+
     function updateRegion() {
-      const map = {"白":"シストベリ","黄":"黄華","橙":"燈火祖界","赤":"極紅","紫":"フィーリラ","青":"アジュール","緑":"ヴェルディア","黒":"メランペプロス"};
-      document.getElementById("region").textContent = map[document.getElementById("color").value];
+      const regionMap = {
+        "白": "シストベリ", "黄": "黄華", "橙": "燈火祖界", "赤": "極紅",
+        "紫": "フィーリラ", "青": "アジュール", "緑": "ヴェルディア", "黒": "メランペプロス"
+      };
+      const color = document.getElementById("color").value;
+      document.getElementById("region").textContent = regionMap[color];
     }
 
     function updateStats() {
-      const base = 30, keys = ["体","精","筋","俊","器","知"];
-      let used = 0, stats = {};
-      keys.forEach(k => {
-        const v = Math.max(0, parseInt(document.getElementById("add_"+k).value) || 0);
-        used += v < 71 ? v : 70 + (v - 70) * 2;
-        stats[k] = base + v;
-        document.getElementById("sta_"+k).value = stats[k];
+      const base = 30;
+      const keys = ["体", "精", "筋", "俊", "器", "知"];
+      let used = 0;
+      let stats = {};
+
+      keys.forEach(key => {
+        let input = document.getElementById("add_" + key);
+        let value = parseInt(input.value);
+        if (isNaN(value) || value < 0) {
+          value = 0;
+          input.value = "";
+        }
+        let cost = (base + value) > 100 ? 1 + (base + value - 100) : 1;
+        used += value;
+        stats[key] = base + value;
+        document.getElementById("sta_" + key).value = stats[key];
       });
-      const remain = 250 - used;
-      document.getElementById("remainingPoints").textContent = remain;
-      document.getElementById("remainingPoints").style.color = remain < 0 ? "red" : "black";
-      if (remain < 0) return;
 
-      const hp = 60 + Math.floor(stats["体"] / 5);
-      const mp = 30 + Math.floor(stats["精"] / 5);
-      const def = Math.floor(stats["筋"] / 20);
-      const spd = 20 + Math.floor(stats["俊"] / 10);
-      const dly = 25 - Math.floor(stats["器"] / 50);
-      const cbp = 45 + Math.floor(stats["知"] / 10);
+      let remaining = 250 - used;
+      document.getElementById("remainingPoints").textContent = remaining;
+      document.getElementById("remainingPoints").style.color = remaining < 0 ? "red" : "black";
+      if (remaining < 0) return;
 
-      document.getElementById("sta_HP").value = hp;
-      document.getElementById("sta_MP").value = mp;
-      document.getElementById("sta_DEF").value = def;
-      document.getElementById("sta_SPD").value = spd;
-      document.getElementById("sta_DLY").value = dly;
+      const HP_base = 60 + Math.floor(stats["体"] / 5);
+      const MP_base = 30 + Math.floor(stats["精"] / 5);
+      const DEF_base = Math.floor(stats["筋"] / 20);
+      const SPD_base = 20 + Math.floor(stats["俊"] / 10);
+      const DLY_base = 25 - Math.floor(stats["器"] / 50);
+      const combatBase = 45 + Math.floor(stats["知"] / 10);
 
-      const add_hp = parseInt(document.getElementById("add_HP").value) || 0;
-      const add_mp = parseInt(document.getElementById("add_MP").value) || 0;
-      const add_def = parseInt(document.getElementById("add_DEF").value) || 0;
-      const add_spd = parseInt(document.getElementById("add_SPD").value) || 0;
-      const add_dly = parseInt(document.getElementById("add_DLY").value) || 0;
+      document.getElementById("sta_HP").value = HP_base;
+      document.getElementById("sta_MP").value = MP_base;
+      document.getElementById("sta_DEF").value = DEF_base;
+      document.getElementById("sta_SPD").value = SPD_base;
+      document.getElementById("sta_DLY").value = DLY_base;
 
-      const usedCombat = add_hp + add_mp + add_def * 4 + add_spd * 2 + add_dly * 10;
-      const remainCombat = cbp - usedCombat;
-      document.getElementById("combatPoints").textContent = remainCombat;
-      document.getElementById("combatPoints").style.color = remainCombat < 0 ? "red" : "black";
+      const add_HP = parseInt(document.getElementById("add_HP").value) || 0;
+      const add_MP = parseInt(document.getElementById("add_MP").value) || 0;
+      const add_DEF = parseInt(document.getElementById("add_DEF").value) || 0;
+      const add_SPD = parseInt(document.getElementById("add_SPD").value) || 0;
+      const add_DLY = parseInt(document.getElementById("add_DLY").value) || 0;
 
-      document.getElementById("total_HP").value = hp + add_hp;
-      document.getElementById("total_MP").value = mp + add_mp;
-      document.getElementById("total_DEF").value = def + add_def;
-      document.getElementById("total_SPD").value = spd + add_spd;
-      document.getElementById("total_DLY").value = dly + add_dly;
+      const usedCombat = add_HP * 1 + add_MP * 1 + add_DEF * 4 + add_SPD * 2 + add_DLY * 10;
+      const remainingCombat = combatBase - usedCombat;
+      document.getElementById("combatPoints").textContent = Math.max(0, remainingCombat);
+      document.getElementById("total_HP").value = HP_base + add_HP;
+      document.getElementById("total_MP").value = MP_base + add_MP;
+      document.getElementById("total_DEF").value = DEF_base + add_DEF;
+      document.getElementById("total_SPD").value = SPD_base + add_SPD;
+      document.getElementById("total_DLY").value = DLY_base + add_DLY;
     }
 
-    let currentSkillPoints = 1000;
-    function updateSkillPointsDisplay() {
-      const sp = document.getElementById("skillPoints");
-      sp.textContent = currentSkillPoints;
-      sp.style.color = currentSkillPoints < 0 ? "red" : "black";
-    }
-
-    function addSkill() {
-      if (currentSkillPoints < 100) return;
-      const container = document.getElementById("skillContainer");
+    function addCustomSkill() {
+      const container = document.getElementById("skillsContainer");
       const div = document.createElement("div");
-      div.style.marginBottom = "8px";
-
-      const name = document.createElement("input");
-      name.type = "text";
-      name.placeholder = "名前";
-
-      const effect = document.createElement("input");
-      effect.type = "text";
-      effect.placeholder = "効果";
-
-      const del = document.createElement("button");
-      del.textContent = "削除";
-      del.onclick = () => {
-        container.removeChild(div);
-        currentSkillPoints += 100;
-        updateSkillPointsDisplay();
-      };
-
-      div.appendChild(name);
-      div.appendChild(effect);
-      div.appendChild(del);
+      div.innerHTML = '<input type="text" placeholder="技能名"> 補足: <input type="text"> 割り振り: <input type="number">';
       container.appendChild(div);
-      currentSkillPoints -= 100;
-      updateSkillPointsDisplay();
     }
 
-    window.onload = () => {
-      updateStats();
-      updateSkillPointsDisplay();
-    };
+    function addSkillBlock() {
+      const skillPoints = document.getElementById("skillPoints");
+      let current = parseInt(skillPoints.textContent);
+      if (current < 100) return;
+
+      const skillBlocks = document.getElementById("skillBlocks");
+      const div = document.createElement("div");
+      div.className = "skill-block";
+      div.innerHTML = `
+        名前: <input type="text"> <br>
+        効果: <input type="text"> <br>
+        <button onclick="this.parentNode.remove(); updateSkillPoints(100)">削除</button>
+      `;
+      skillBlocks.appendChild(div);
+      updateSkillPoints(-100);
+    }
+
+    function updateSkillPoints(change) {
+      const skillPoints = document.getElementById("skillPoints");
+      skillPoints.textContent = parseInt(skillPoints.textContent) + change;
+    }
+
+    window.onload = updateStats;
   </script></body>
 </html>
