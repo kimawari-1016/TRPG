@@ -1,5 +1,4 @@
-<!DOCTYPE html>
-<html lang="ja">
+<!DOCTYPE html><html lang="ja">
 <head>
   <meta charset="UTF-8">
   <title>TRPGキャラクターシート</title>
@@ -11,28 +10,14 @@
     .status-table { margin-bottom: 30px; }
     button { margin-top: 5px; }
     .skill-row, .ability-row { display: flex; align-items: center; gap: 5px; margin-bottom: 5px; }
-    .skill-row input[type="text"] { flex: 1; }
+    .skill-row input[type="text"], .ability-row input[type="text"] { flex: 1; }
   </style>
 </head>
 <body>
   <h1>TRPGキャラクターシート</h1>
   <label>名前：<input type="text"></label><br>
   <label>年齢：<input type="number"></label>
-  <label>性別：<input type="text"></label><br><br>
-
-  <label>特色：
-    <select id="color" onchange="updateRegion()">
-      <option value="白">白</option>
-      <option value="黄">黄</option>
-      <option value="橙">橙</option>
-      <option value="赤">赤</option>
-      <option value="紫">紫</option>
-      <option value="青">青</option>
-      <option value="緑">緑</option>
-      <option value="黒">黒</option>
-    </select>
-  </label>
-  <span id="region">シストベリ</span>
+  <label>性別：<input type="text"></label><br><br><label>特色： <select id="color" onchange="updateRegion()"> <option value="白">白</option> <option value="黄">黄</option> <option value="橙">橙</option> <option value="赤">赤</option> <option value="紫">紫</option> <option value="青">青</option> <option value="緑">緑</option> <option value="黒">黒</option> </select> </label> <span id="region">シストベリ</span>
 
   <div class="status-table">
     <h3>メインステータス</h3>
@@ -58,9 +43,7 @@
         <td><input type="number" id="add_知" oninput="updateStats()"></td>
       </tr>
     </table>
-  </div>
-
-  <div class="status-table">
+  </div>  <div class="status-table">
     <h3>戦闘ステータス</h3>
     <p>戦闘ステータス用ポイント：<span id="combatPoints">0</span></p>
     <table>
@@ -90,22 +73,16 @@
         <td><span id="total_DLY">0</span></td>
       </tr>
     </table>
-  </div>
-
-  <div class="status-table">
+  </div>  <div class="status-table">
     <h3>技能</h3>
     <p>スキルポイント：<span id="skillPoints">1000</span></p>
     <div id="abilities"></div>
     <button onclick="addAbility()">技能を追加</button>
-  </div>
-
-  <div class="status-table">
+  </div>  <div class="status-table">
     <h3>スキル</h3>
     <div id="skills"></div>
     <button onclick="addSkill()">スキルを追加</button>
-  </div>
-
-<script>
+  </div><script>
   const regionMap = {
     "白": "シストベリ", "黄": "黄華", "橙": "燈火祖界", "赤": "極紅",
     "紫": "フィーリラ", "青": "アジュール", "緑": "ヴェルディア", "黒": "メランペプロス"
@@ -116,8 +93,12 @@
     document.getElementById("region").textContent = regionMap[color];
   }
 
-  function calcCost(value) {
-    return value <= 100 ? value : 100 + (value - 100) * 2;
+  function calcCost(val) {
+    let cost = 0;
+    for (let i = 0; i < val; i++) {
+      cost += (i + 30) < 100 ? 1 : 2;
+    }
+    return cost;
   }
 
   function updateStats() {
@@ -166,6 +147,19 @@
     document.getElementById("total_DEF").textContent = DEF_base + add_DEF;
     document.getElementById("total_SPD").textContent = SPD_base + add_SPD;
     document.getElementById("total_DLY").textContent = DLY_base + add_DLY;
+
+    updateSkillPoints();
+  }
+
+  function updateSkillPoints() {
+    let skillCost = document.querySelectorAll(".skill-row").length * 100;
+    let abilityCost = 0;
+    document.querySelectorAll(".ability-row input[type=number]").forEach(inp => {
+      abilityCost += calcCost(parseInt(inp.value) || 0);
+    });
+    let total = 1000 - skillCost - abilityCost;
+    document.getElementById("skillPoints").textContent = total;
+    document.getElementById("skillPoints").style.color = total < 0 ? "red" : "black";
   }
 
   function addAbility() {
@@ -180,23 +174,11 @@
     const input = document.createElement("input");
     input.type = "number";
     input.placeholder = "割り振り";
-    input.oninput = () => {
-      let used = 0;
-      document.querySelectorAll(".ability-row input[type=number]").forEach(inp => {
-        let val = parseInt(inp.value) || 0;
-        used += calcCost(val);
-      });
-      const total = 1000 - used - document.querySelectorAll(".skill-row").length * 100;
-      document.getElementById("skillPoints").textContent = total;
-      document.getElementById("skillPoints").style.color = total < 0 ? "red" : "black";
-    };
+    input.oninput = updateStats;
 
     const del = document.createElement("button");
     del.textContent = "削除";
-    del.onclick = () => {
-      row.remove();
-      input.oninput();
-    };
+    del.onclick = () => { row.remove(); updateStats(); };
 
     row.appendChild(name);
     row.appendChild(input);
@@ -219,28 +201,15 @@
 
     const del = document.createElement("button");
     del.textContent = "削除";
-    del.onclick = () => {
-      row.remove();
-      updateStats(); // スキルポイント再計算
-      document.getElementById("skillPoints").textContent = 1000 -
-        [...document.querySelectorAll(".ability-row input[type=number]")]
-        .reduce((sum, i) => sum + calcCost(parseInt(i.value) || 0), 0) -
-        document.querySelectorAll(".skill-row").length * 100;
-    };
+    del.onclick = () => { row.remove(); updateStats(); };
 
     row.appendChild(name);
     row.appendChild(effect);
     row.appendChild(del);
     container.appendChild(row);
-
-    updateStats(); // スキルポイント減算
-    document.getElementById("skillPoints").textContent = 1000 -
-      [...document.querySelectorAll(".ability-row input[type=number]")]
-      .reduce((sum, i) => sum + calcCost(parseInt(i.value) || 0), 0) -
-      document.querySelectorAll(".skill-row").length * 100;
+    updateStats();
   }
 
   window.onload = updateStats;
-</script>
-</body>
+</script></body>
 </html>
