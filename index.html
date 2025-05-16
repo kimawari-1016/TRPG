@@ -1,22 +1,25 @@
-<!DOCTYPE html><html lang="ja">
+<!DOCTYPE html>
+<html lang="ja">
 <head>
   <meta charset="UTF-8">
   <title>TRPGキャラクターシート</title>
   <style>
-    body { font-family: sans-serif; padding: 20px; }
-    input[type="text"], input[type="number"] { width: 120px; }
-    table { border-collapse: collapse; margin-bottom: 20px; }
-    td, th { border: 1px solid #ccc; padding: 4px 8px; text-align: center; }
-    .status-table, .skills-table, .skill-section { margin-bottom: 40px; }
-    .flex-row { display: flex; gap: 10px; align-items: center; margin-bottom: 8px; }
+    body { font-family: sans-serif; padding: 10px; max-width: 600px; margin: auto; }
+    input[type="number"], input[type="text"] { width: 80px; }
+    table { border-collapse: collapse; width: 100%; margin-bottom: 20px; }
+    td, th { border: 1px solid #ccc; padding: 4px 6px; text-align: center; }
+    .status-table { margin-bottom: 30px; }
+    button { margin-top: 5px; }
+    .skill-row, .ability-row { display: flex; align-items: center; gap: 5px; margin-bottom: 5px; }
+    .skill-row input[type="text"] { flex: 1; }
   </style>
 </head>
 <body>
   <h1>TRPGキャラクターシート</h1>
-  <label>名前：<input type="text"></label>
+  <label>名前：<input type="text"></label><br>
   <label>年齢：<input type="number"></label>
-  <label>性別：<input type="text"></label>
-  <br>
+  <label>性別：<input type="text"></label><br><br>
+
   <label>特色：
     <select id="color" onchange="updateRegion()">
       <option value="白">白</option>
@@ -29,12 +32,22 @@
       <option value="黒">黒</option>
     </select>
   </label>
-  <span id="region">シストベリ</span>  <div class="status-table">
+  <span id="region">シストベリ</span>
+
+  <div class="status-table">
     <h3>メインステータス</h3>
     <p>使用可能ポイント：<span id="remainingPoints">250</span></p>
     <table>
       <tr><th></th><th>体力</th><th>精神</th><th>筋力</th><th>俊敏</th><th>器用</th><th>知力</th></tr>
-      <tr><td>初期値</td><td colspan="6">各30</td></tr>
+      <tr>
+        <td>初期値</td>
+        <td><span id="sta_体">30</span></td>
+        <td><span id="sta_精">30</span></td>
+        <td><span id="sta_筋">30</span></td>
+        <td><span id="sta_俊">30</span></td>
+        <td><span id="sta_器">30</span></td>
+        <td><span id="sta_知">30</span></td>
+      </tr>
       <tr>
         <td>割り振り</td>
         <td><input type="number" id="add_体" oninput="updateStats()"></td>
@@ -45,12 +58,21 @@
         <td><input type="number" id="add_知" oninput="updateStats()"></td>
       </tr>
     </table>
-  </div>  <div class="status-table">
+  </div>
+
+  <div class="status-table">
     <h3>戦闘ステータス</h3>
     <p>戦闘ステータス用ポイント：<span id="combatPoints">0</span></p>
     <table>
       <tr><th></th><th>HP</th><th>MP</th><th>装甲値</th><th>速度</th><th>後隙</th></tr>
-      <tr><td>初期値</td><td id="sta_HP">0</td><td id="sta_MP">0</td><td id="sta_DEF">0</td><td id="sta_SPD">0</td><td id="sta_DLY">0</td></tr>
+      <tr>
+        <td>初期値</td>
+        <td><span id="sta_HP">0</span></td>
+        <td><span id="sta_MP">0</span></td>
+        <td><span id="sta_DEF">0</span></td>
+        <td><span id="sta_SPD">0</span></td>
+        <td><span id="sta_DLY">0</span></td>
+      </tr>
       <tr>
         <td>割り振り</td>
         <td><input type="number" id="add_HP" oninput="updateStats()"></td>
@@ -61,110 +83,164 @@
       </tr>
       <tr>
         <td>合計</td>
-        <td id="total_HP">0</td><td id="total_MP">0</td><td id="total_DEF">0</td>
-        <td id="total_SPD">0</td><td id="total_DLY">0</td>
+        <td><span id="total_HP">0</span></td>
+        <td><span id="total_MP">0</span></td>
+        <td><span id="total_DEF">0</span></td>
+        <td><span id="total_SPD">0</span></td>
+        <td><span id="total_DLY">0</span></td>
       </tr>
     </table>
-  </div>  <div class="skills-table">
-    <h3>技能（スキルポイント：<span id="skillPoints">1000</span>）</h3>
-    <div id="skillList"></div>
-    <button onclick="addSkillField()">技能を追加</button>
-  </div>  <div class="skill-section">
+  </div>
+
+  <div class="status-table">
+    <h3>技能</h3>
+    <p>スキルポイント：<span id="skillPoints">1000</span></p>
+    <div id="abilities"></div>
+    <button onclick="addAbility()">技能を追加</button>
+  </div>
+
+  <div class="status-table">
     <h3>スキル</h3>
     <div id="skills"></div>
-    <button onclick="addSkillBox()">スキルを追加</button>
-  </div>  <script>
-    const skillList = document.getElementById("skillList");
-    const skillPointsDisplay = document.getElementById("skillPoints");
+    <button onclick="addSkill()">スキルを追加</button>
+  </div>
 
-    function updateRegion() {
-      const regionMap = { "白":"シストベリ","黄":"黄華","橙":"燈火祖界","赤":"極紅","紫":"フィーリラ","青":"アジュール","緑":"ヴェルディア","黒":"メランペプロス" };
-      document.getElementById("region").textContent = regionMap[document.getElementById("color").value];
-    }
+<script>
+  const regionMap = {
+    "白": "シストベリ", "黄": "黄華", "橙": "燈火祖界", "赤": "極紅",
+    "紫": "フィーリラ", "青": "アジュール", "緑": "ヴェルディア", "黒": "メランペプロス"
+  };
 
-    function updateStats() {
-      const base = 30;
-      const keys = ["体", "精", "筋", "俊", "器", "知"];
+  function updateRegion() {
+    const color = document.getElementById("color").value;
+    document.getElementById("region").textContent = regionMap[color];
+  }
+
+  function calcCost(value) {
+    return value <= 100 ? value : 100 + (value - 100) * 2;
+  }
+
+  function updateStats() {
+    const keys = ["体", "精", "筋", "俊", "器", "知"];
+    let used = 0, stats = {};
+
+    keys.forEach(k => {
+      let add = parseInt(document.getElementById("add_" + k).value) || 0;
+      let total = 30 + add;
+      stats[k] = total;
+      used += calcCost(add);
+      document.getElementById("sta_" + k).textContent = total;
+    });
+
+    let rem = 250 - used;
+    document.getElementById("remainingPoints").textContent = rem;
+    document.getElementById("remainingPoints").style.color = rem < 0 ? "red" : "black";
+
+    const HP_base = 60 + Math.floor(stats["体"] / 5);
+    const MP_base = 30 + Math.floor(stats["精"] / 5);
+    const DEF_base = Math.floor(stats["筋"] / 20);
+    const SPD_base = 20 + Math.floor(stats["俊"] / 10);
+    const DLY_base = 25 - Math.floor(stats["器"] / 50);
+    const combatBase = 45 + Math.floor(stats["知"] / 10);
+
+    document.getElementById("sta_HP").textContent = HP_base;
+    document.getElementById("sta_MP").textContent = MP_base;
+    document.getElementById("sta_DEF").textContent = DEF_base;
+    document.getElementById("sta_SPD").textContent = SPD_base;
+    document.getElementById("sta_DLY").textContent = DLY_base;
+
+    const add_HP = parseInt(document.getElementById("add_HP").value) || 0;
+    const add_MP = parseInt(document.getElementById("add_MP").value) || 0;
+    const add_DEF = parseInt(document.getElementById("add_DEF").value) || 0;
+    const add_SPD = parseInt(document.getElementById("add_SPD").value) || 0;
+    const add_DLY = parseInt(document.getElementById("add_DLY").value) || 0;
+
+    const combatUsed = add_HP * 1 + add_MP * 1 + add_DEF * 4 + add_SPD * 2 + add_DLY * 10;
+    const combatRem = combatBase - combatUsed;
+
+    document.getElementById("combatPoints").textContent = Math.max(0, combatRem);
+    document.getElementById("combatPoints").style.color = combatRem < 0 ? "red" : "black";
+
+    document.getElementById("total_HP").textContent = HP_base + add_HP;
+    document.getElementById("total_MP").textContent = MP_base + add_MP;
+    document.getElementById("total_DEF").textContent = DEF_base + add_DEF;
+    document.getElementById("total_SPD").textContent = SPD_base + add_SPD;
+    document.getElementById("total_DLY").textContent = DLY_base + add_DLY;
+  }
+
+  function addAbility() {
+    const container = document.getElementById("abilities");
+    const row = document.createElement("div");
+    row.className = "ability-row";
+
+    const name = document.createElement("input");
+    name.type = "text";
+    name.placeholder = "技能名";
+
+    const input = document.createElement("input");
+    input.type = "number";
+    input.placeholder = "割り振り";
+    input.oninput = () => {
       let used = 0;
-      let stats = {};
-      keys.forEach(key => {
-        const value = parseInt(document.getElementById("add_" + key).value) || 0;
-        const total = base + value;
-        used += total > 100 ? (100 - base > 0 ? (100 - base) + (total - 100) * 2 : value * 2) : value;
-        stats[key] = total;
+      document.querySelectorAll(".ability-row input[type=number]").forEach(inp => {
+        let val = parseInt(inp.value) || 0;
+        used += calcCost(val);
       });
-      const remaining = 250 - used;
-      document.getElementById("remainingPoints").textContent = remaining;
-      document.getElementById("remainingPoints").style.color = remaining < 0 ? "red" : "black";
+      const total = 1000 - used - document.querySelectorAll(".skill-row").length * 100;
+      document.getElementById("skillPoints").textContent = total;
+      document.getElementById("skillPoints").style.color = total < 0 ? "red" : "black";
+    };
 
-      const HP_base = 60 + Math.floor(stats["体"] / 5);
-      const MP_base = 30 + Math.floor(stats["精"] / 5);
-      const DEF_base = Math.floor(stats["筋"] / 20);
-      const SPD_base = 20 + Math.floor(stats["俊"] / 10);
-      const DLY_base = 25 - Math.floor(stats["器"] / 50);
-      const combatBase = 45 + Math.floor(stats["知"] / 10);
+    const del = document.createElement("button");
+    del.textContent = "削除";
+    del.onclick = () => {
+      row.remove();
+      input.oninput();
+    };
 
-      document.getElementById("sta_HP").textContent = HP_base;
-      document.getElementById("sta_MP").textContent = MP_base;
-      document.getElementById("sta_DEF").textContent = DEF_base;
-      document.getElementById("sta_SPD").textContent = SPD_base;
-      document.getElementById("sta_DLY").textContent = DLY_base;
+    row.appendChild(name);
+    row.appendChild(input);
+    row.appendChild(del);
+    container.appendChild(row);
+  }
 
-      const add_HP = parseInt(document.getElementById("add_HP").value) || 0;
-      const add_MP = parseInt(document.getElementById("add_MP").value) || 0;
-      const add_DEF = parseInt(document.getElementById("add_DEF").value) || 0;
-      const add_SPD = parseInt(document.getElementById("add_SPD").value) || 0;
-      const add_DLY = parseInt(document.getElementById("add_DLY").value) || 0;
+  function addSkill() {
+    const container = document.getElementById("skills");
+    const row = document.createElement("div");
+    row.className = "skill-row";
 
-      const usedCombat = add_HP + add_MP + add_DEF * 4 + add_SPD * 2 + add_DLY * 10;
-      const remainingCombat = combatBase - usedCombat;
+    const name = document.createElement("input");
+    name.type = "text";
+    name.placeholder = "名前";
 
-      document.getElementById("combatPoints").textContent = remainingCombat;
-      document.getElementById("combatPoints").style.color = remainingCombat < 0 ? "red" : "black";
+    const effect = document.createElement("input");
+    effect.type = "text";
+    effect.placeholder = "効果";
 
-      document.getElementById("total_HP").textContent = HP_base + add_HP;
-      document.getElementById("total_MP").textContent = MP_base + add_MP;
-      document.getElementById("total_DEF").textContent = DEF_base + add_DEF;
-      document.getElementById("total_SPD").textContent = SPD_base + add_SPD;
-      document.getElementById("total_DLY").textContent = DLY_base + add_DLY;
+    const del = document.createElement("button");
+    del.textContent = "削除";
+    del.onclick = () => {
+      row.remove();
+      updateStats(); // スキルポイント再計算
+      document.getElementById("skillPoints").textContent = 1000 -
+        [...document.querySelectorAll(".ability-row input[type=number]")]
+        .reduce((sum, i) => sum + calcCost(parseInt(i.value) || 0), 0) -
+        document.querySelectorAll(".skill-row").length * 100;
+    };
 
-      updateSkillPoints();
-    }
+    row.appendChild(name);
+    row.appendChild(effect);
+    row.appendChild(del);
+    container.appendChild(row);
 
-    function updateSkillPoints() {
-      let totalUsed = 0;
-      document.querySelectorAll(".skill-entry").forEach(row => {
-        const val = parseInt(row.querySelector("input[type='number']").value) || 0;
-        totalUsed += val > 100 ? 100 + (val - 100) * 2 : val;
-      });
-      const skills = document.querySelectorAll(".skill-box").length;
-      skillPointsDisplay.textContent = 1000 - totalUsed - (skills * 100);
-      skillPointsDisplay.style.color = (1000 - totalUsed - (skills * 100)) < 0 ? "red" : "black";
-    }
+    updateStats(); // スキルポイント減算
+    document.getElementById("skillPoints").textContent = 1000 -
+      [...document.querySelectorAll(".ability-row input[type=number]")]
+      .reduce((sum, i) => sum + calcCost(parseInt(i.value) || 0), 0) -
+      document.querySelectorAll(".skill-row").length * 100;
+  }
 
-    function addSkillField() {
-      const row = document.createElement("div");
-      row.className = "flex-row skill-entry";
-      row.innerHTML = `
-        <input type="text" placeholder="技能名">
-        <input type="number" value="0" oninput="updateStats()">
-        <button onclick="this.parentElement.remove(); updateStats()">削除</button>
-      `;
-      skillList.appendChild(row);
-    }
-
-    function addSkillBox() {
-      const box = document.createElement("div");
-      box.className = "flex-row skill-box";
-      box.innerHTML = `
-        <input type="text" placeholder="スキル名">
-        <input type="text" placeholder="効果">
-        <button onclick="this.parentElement.remove(); updateStats()">削除</button>
-      `;
-      document.getElementById("skills").appendChild(box);
-      updateStats();
-    }
-
-    window.onload = updateStats;
-  </script></body>
+  window.onload = updateStats;
+</script>
+</body>
 </html>
