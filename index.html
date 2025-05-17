@@ -1,34 +1,30 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <title>TRPGキャラ作成</title>
-  <style>
-    .status-group {
-      display: flex;
-      gap: 20px;
-      margin-bottom: 10px;
-    }
-    .status-box {
-      border: 1px solid #ccc;
-      padding: 10px;
-      width: 130px;
-      text-align: center;
-    }
-    .status-box input {
-      width: 60px;
-      text-align: center;
-    }
-  </style>
+<meta charset="UTF-8" />
+<title>TRPGキャラクターシート</title>
+<style>
+  body { font-family: sans-serif; padding: 20px; }
+  .status-row { display: flex; gap: 15px; margin-bottom: 20px; }
+  .status-block { border: 1px solid #ccc; padding: 10px; width: 110px; }
+  label { display: block; margin-bottom: 5px; }
+  input[type=number] { width: 50px; }
+</style>
 </head>
 <body>
-  <h1>キャラクター作成</h1>
 
-  <label>名前：<input type="text" id="name"></label><br>
-  <label>年齢：<input type="number" id="age"></label><br><br>
+<h1>TRPGキャラクターシート</h1>
 
-  <label>特色：
-    <select id="color" onchange="updateRegion()">
+<!-- 名前・年齢 -->
+<div>
+  <label>名前: <input type="text" id="name" /></label>
+  <label>年齢: <input type="number" id="age" min="0" /></label>
+</div>
+
+<!-- 特色・地域 -->
+<div style="margin-top: 15px;">
+  <label>特色:
+    <select id="traitSelect">
       <option value="白">白</option>
       <option value="黄">黄</option>
       <option value="橙">橙</option>
@@ -39,98 +35,208 @@
       <option value="黒">黒</option>
     </select>
   </label>
+  <span style="margin-left:20px;">地域: <span id="regionName">シストベリ</span></span>
+</div>
 
-  <span id="region">シストベリ</span>
+<!-- ステータス -->
+<h2>ステータス (割り振りポイント: <span id="remainPoints">250</span>)</h2>
+<div class="status-row" id="normalStats">
+  <!-- 各ステータスはここにJSで追加 -->
+</div>
 
-  <h2>ステータス</h2>
-  <p>割り振り可能ポイント: <span id="point-pool">250</span></p>
+<!-- 戦闘ステータス -->
+<h2>戦闘ステータス (残り戦闘用ポイント: <span id="combatPoints">0</span>)</h2>
+<div class="status-row" id="combatStats">
+  <!-- 戦闘ステータスはJSで追加 -->
+</div>
 
-  <div class="status-group" id="status-container">
-    <!-- 各ステータスの入力枠がここに追加されます -->
-  </div>
+<script>
+  // 特色と地域対応
+  const regionMap = {
+    白: "シストベリ",
+    黄: "黄華",
+    橙: "燈火祖界",
+    赤: "極紅",
+    紫: "フィーリラ",
+    青: "アジュール",
+    緑: "ヴェルディア",
+    黒: "メランペプロス"
+  };
 
-  <script>
-    const regionMap = {
-      "白": "シストベリ",
-      "黄": "黄華",
-      "橙": "燈火祖界",
-      "赤": "極紅",
-      "紫": "フィーリラ",
-      "青": "アジュール",
-      "緑": "ヴェルディア",
-      "黒": "メランペプロス"
-    };
+  const traitSelect = document.getElementById("traitSelect");
+  const regionName = document.getElementById("regionName");
+  traitSelect.addEventListener("change", () => {
+    regionName.textContent = regionMap[traitSelect.value] || "";
+  });
 
-    function updateRegion() {
-      const color = document.getElementById("color").value;
-      document.getElementById("region").textContent = regionMap[color];
+  // 通常ステータス名
+  const normalStatKeys = ["体力", "精神", "筋力", "俊敏", "器用", "知力"];
+
+  // 通常ステータスの基礎値（初期30）と割り振り値
+  let normalStats = {};
+  // 割り振り可能ポイント
+  let remainPoints = 250;
+
+  const normalStatsContainer = document.getElementById("normalStats");
+  const remainPointsSpan = document.getElementById("remainPoints");
+
+  // ステータス1上げるのに必要ポイント（100超過時は2倍）
+  function getCostForNormalStat(base, add) {
+    let cost = 0;
+    for(let i = 1; i <= add; i++) {
+      let val = base + i - 1;
+      cost += (val >= 100) ? 2 : 1;
     }
+    return cost;
+  }
 
-    const maxPoints = 250;
-    const baseStat = 30;
-
-    const statusList = [
-      { name: "体力", id: "vitality" },
-      { name: "精神", id: "spirit" },
-      { name: "筋力", id: "strength" },
-      { name: "俊敏", id: "agility" },
-      { name: "器用", id: "dexterity" },
-      { name: "知力", id: "intelligence" }
-    ];
-
-    function createStatusInputs() {
-      const container = document.getElementById("status-container");
-
-      statusList.forEach(stat => {
-        const box = document.createElement("div");
-        box.className = "status-box";
-
-        box.innerHTML = `
-          <div>${stat.name}</div>
-          <div>
-            <label>基礎値<br>
-              <input type="number" id="${stat.id}-current" value="${baseStat}" readonly>
-            </label>
-          </div>
-          <div>
-            <label>割り振り<br>
-              <input type="number" id="${stat.id}-add" value="0" min="0" oninput="updatePoints()">
-            </label>
-          </div>
-        `;
-
-        container.appendChild(box);
-      });
-    }
-
-    function updatePoints() {
-      let totalCost = 0;
-
-      statusList.forEach(stat => {
-        const addValue = parseInt(document.getElementById(`${stat.id}-add`).value) || 0;
-        const currentValue = baseStat + addValue;
-
-        // コスト計算：100以下は1、101以降は2
-        let cost = 0;
-        for (let i = 1; i <= addValue; i++) {
-          const value = baseStat + i;
-          cost += (value > 100) ? 2 : 1;
+  // 初期化してUI作成
+  function initNormalStats() {
+    normalStatsContainer.innerHTML = "";
+    normalStatKeys.forEach(stat => {
+      normalStats[stat] = { base: 30, add: 0 };
+      const block = document.createElement("div");
+      block.className = "status-block";
+      block.innerHTML = `
+        <div><strong>${stat}</strong></div>
+        <div>基礎値: <span id="${stat}-base">30</span></div>
+        <div>割り振り: <input type="number" id="${stat}-add" value="0" min="0" /></div>
+      `;
+      normalStatsContainer.appendChild(block);
+      const input = block.querySelector("input");
+      input.addEventListener("input", () => {
+        let val = parseInt(input.value) || 0;
+        if(val < 0) val = 0;
+        const base = normalStats[stat].base;
+        const otherCost = Object.keys(normalStats).reduce((sum, k) => {
+          if(k === stat) return sum;
+          return sum + getCostForNormalStat(normalStats[k].base, normalStats[k].add);
+        }, 0);
+        const thisCost = getCostForNormalStat(base, val);
+        if(otherCost + thisCost <= 250) {
+          normalStats[stat].add = val;
+          remainPoints = 250 - (otherCost + thisCost);
+          updateNormalBaseValues();
+          updateCombatBase();
+        } else {
+          input.value = normalStats[stat].add;
         }
-
-        totalCost += cost;
-
-        // 現在値の更新
-        document.getElementById(`${stat.id}-current`).value = currentValue;
+        remainPointsSpan.textContent = remainPoints;
       });
+    });
+  }
 
-      const remaining = maxPoints - totalCost;
-      const pointPool = document.getElementById("point-pool");
-      pointPool.textContent = remaining;
-      pointPool.style.color = (remaining < 0) ? "red" : "black";
+  // 割り振り分を足して基礎値を更新
+  function updateNormalBaseValues() {
+    normalStatKeys.forEach(stat => {
+      document.getElementById(`${stat}-base`).textContent = normalStats[stat].base + normalStats[stat].add;
+    });
+  }
+
+  // 戦闘用ステータスの計算式とコスト設定
+  const combatStatKeys = ["HP", "MP", "装甲値", "速度", "後隙"];
+  const costPerPoint = {
+    HP: 1,
+    MP: 4,
+    装甲値: 4,
+    速度: 2,
+    後隙: 10
+  };
+
+  // 通常ステータスの値取得用関数
+  function getNormalStatValue(statName) {
+    return normalStats[statName].base + normalStats[statName].add;
+  }
+
+  // 戦闘ステータス情報保持
+  let combatStats = {};
+  let combatPointBase = 0;
+  let combatPointRemain = 0;
+
+  // 戦闘ステータス計算
+  function calcCombatBase() {
+    const stats = {
+      HP: 60 + Math.floor(getNormalStatValue("体力") / 5),
+      MP: 30 + Math.floor(getNormalStatValue("精神") / 5),
+      装甲値: Math.floor(getNormalStatValue("筋力") / 20),
+      速度: 20 + Math.floor(getNormalStatValue("俊敏") / 10),
+      後隙: 25 - Math.floor(getNormalStatValue("器用") / 50)
+    };
+    combatPointBase = 45 + Math.floor(getNormalStatValue("知力") / 10);
+    combatPointRemain = combatPointBase;
+
+    combatStatKeys.forEach(key => {
+      combatStats[key] = { base: stats[key], add: 0 };
+    });
+  }
+
+  // 戦闘用ステータスポイント計算
+  function getCostForCombatStat(statKey, add) {
+    let cost = 0;
+    for(let i=1; i<=add; i++) {
+      let val = combatStats[statKey].base + i - 1;
+      // 後隙は値が下がるので逆計算
+      if(statKey === "後隙") {
+        cost += costPerPoint[statKey];
+      } else {
+        cost += (val >= 100) ? costPerPoint[statKey]*2 : costPerPoint[statKey];
+      }
     }
+    return cost;
+  }
 
-    // 初期化
-    createStatusInputs();
-  </script>
+  // 戦闘ステータスのUI作成
+  const combatStatsContainer = document.getElementById("combatStats");
+  function renderCombatStats() {
+    combatStatsContainer.innerHTML = "";
+    combatStatKeys.forEach(key => {
+      const block = document.createElement("div");
+      block.className = "status-block";
+      block.innerHTML = `
+        <div><strong>${key}</strong></div>
+        <div>基礎値: <span id="combat-${key}-base">${combatStats[key].base}</span></div>
+        <div>割り振り: <input type="number" id="combat-${key}-add" value="0" min="0" /></div>
+      `;
+      combatStatsContainer.appendChild(block);
+
+      const input = block.querySelector("input");
+      input.addEventListener("input", () => {
+        let val = parseInt(input.value) || 0;
+        if(val < 0) val = 0;
+        // 割り振り合計ポイント計算
+        const otherCost = combatStatKeys.reduce((sum, k) => {
+          if(k === key) return sum;
+          const v = parseInt(document.getElementById(`combat-${k}-add`).value) || 0;
+          return sum + getCostForCombatStat(k, v);
+        }, 0);
+
+        const thisCost = getCostForCombatStat(key, val);
+        if(otherCost + thisCost <= combatPointBase) {
+          combatStats[key].add = val;
+          combatPointRemain = combatPointBase - (otherCost + thisCost);
+          input.value = val;
+        } else {
+          input.value = combatStats[key].add;
+        }
+        document.getElementById("combatPoints").textContent = combatPointRemain;
+      });
+    });
+    document.getElementById("combatPoints").textContent = combatPointRemain;
+  }
+
+  // 通常ステータスと連動して戦闘基礎値更新と表示
+  function updateCombatBase() {
+    calcCombatBase();
+    renderCombatStats();
+  }
+
+  // 初期化処理
+  window.addEventListener("DOMContentLoaded", () => {
+    initNormalStats();
+    updateCombatBase();
+  });
+
+</script>
+
 </body>
 </html>
