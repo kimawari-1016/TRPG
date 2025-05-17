@@ -1,189 +1,197 @@
 <!DOCTYPE html><html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>TRPGキャラクターシート</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>キャラクター作成</title>
   <style>
-    body { font-family: sans-serif; padding: 10px; max-width: 800px; margin: auto; }
-    input[type="text"], input[type="number"] { width: 60px; }
-    table { border-collapse: collapse; margin-bottom: 20px; width: 100%; }
-    td, th { border: 1px solid #ccc; padding: 4px 8px; text-align: center; }
-    .section { margin-bottom: 40px; }
-    button { margin-left: 10px; }
-    .skill-entry, .ability-entry { display: flex; gap: 10px; margin-bottom: 5px; }
-    .skill-entry input, .ability-entry input { width: auto; }
-    .entry-container { margin-top: 10px; }
+    body { font-family: sans-serif; padding: 20px; }
+    .section { margin-bottom: 20px; }
+    .field { margin-bottom: 5px; }
+    .stat-block, .skill-block, .ability-block, .skill-entry { display: flex; gap: 10px; align-items: center; margin-bottom: 5px; }
+    input[type=number] { width: 60px; }
+    button { padding: 4px 8px; }
   </style>
 </head>
 <body>
-  <h1>TRPGキャラクターシート</h1>
-  <label>名前：<input type="text"></label>
-  <label>年齢：<input type="number"></label>
-  <label>性別：<input type="text"></label><br><br><label>特色： <select id="color" onchange="updateRegion()"> <option value="白">白</option> <option value="黄">黄</option> <option value="橙">橙</option> <option value="赤">赤</option> <option value="紫">紫</option> <option value="青">青</option> <option value="緑">緑</option> <option value="黒">黒</option> </select> </label> <span id="region">シストベリ</span>
-
   <div class="section">
-    <h3>メインステータス</h3>
-    <p>使用可能ポイント：<span id="remainingPoints">250</span></p>
-    <table>
-      <tr>
-        <th>項目</th><th>体力</th><th>精神</th><th>筋力</th><th>俊敏</th><th>器用</th><th>知力</th>
-      </tr>
-      <tr>
-        <td>初期値</td>
-        <td><span>30</span></td><td><span>30</span></td><td><span>30</span></td><td><span>30</span></td><td><span>30</span></td><td><span>30</span></td>
-      </tr>
-      <tr>
-        <td>割り振り</td>
-        <td><input type="number" id="add_体" value="0" oninput="updateStats()"></td>
-        <td><input type="number" id="add_精" value="0" oninput="updateStats()"></td>
-        <td><input type="number" id="add_筋" value="0" oninput="updateStats()"></td>
-        <td><input type="number" id="add_俊" value="0" oninput="updateStats()"></td>
-        <td><input type="number" id="add_器" value="0" oninput="updateStats()"></td>
-        <td><input type="number" id="add_知" value="0" oninput="updateStats()"></td>
-      </tr>
-    </table>
+    <h2>メインステータス</h2>
+    <div id="main-status"></div>
   </div>  <div class="section">
-    <h3>戦闘ステータス</h3>
-    <p>戦闘ステータス用ポイント：<span id="combatPoints">0</span></p>
-    <table>
-      <tr><th></th><th>HP</th><th>MP</th><th>装甲値</th><th>速度</th><th>後隙</th></tr>
-      <tr>
-        <td>初期値</td>
-        <td><input id="sta_HP" readonly></td>
-        <td><input id="sta_MP" readonly></td>
-        <td><input id="sta_DEF" readonly></td>
-        <td><input id="sta_SPD" readonly></td>
-        <td><input id="sta_DLY" readonly></td>
-      </tr>
-      <tr>
-        <td>割り振り</td>
-        <td><input id="add_HP" value="0" oninput="updateStats()"></td>
-        <td><input id="add_MP" value="0" oninput="updateStats()"></td>
-        <td><input id="add_DEF" value="0" oninput="updateStats()"></td>
-        <td><input id="add_SPD" value="0" oninput="updateStats()"></td>
-        <td><input id="add_DLY" value="0" oninput="updateStats()"></td>
-      </tr>
-      <tr>
-        <td>合計</td>
-        <td><input id="total_HP" readonly></td>
-        <td><input id="total_MP" readonly></td>
-        <td><input id="total_DEF" readonly></td>
-        <td><input id="total_SPD" readonly></td>
-        <td><input id="total_DLY" readonly></td>
-      </tr>
-    </table>
+    <h2>戦闘ステータス</h2>
+    <div id="combat-status"></div>
   </div>  <div class="section">
-    <h3>技能 <span>（スキルポイント：<span id="skillPoints">1000</span>）</span></h3>
-    <div id="abilities">
-      <!-- 技能追加ここに入る -->
-    </div>
-    <button onclick="addAbility()">技能を追加</button>
+    <h2>スキルポイント: <span id="skill-points">1000</span></h2>
   </div>  <div class="section">
-    <h3>スキル</h3>
-    <div id="skills" class="entry-container"></div>
-    <button onclick="addSkill()">スキルを追加</button>
+    <h2>技能</h2>
+    <div id="skills"></div>
+    <button onclick="addSkill()">技能を追加</button>
+  </div>  <div class="section">
+    <h2>スキル</h2>
+    <div id="abilities"></div>
+    <button onclick="addAbility()">スキルを追加</button>
   </div>  <script>
-    const regionMap = {
-      "白": "シストベリ", "黄": "黄華", "橙": "燈火祖界", "赤": "極紅",
-      "紫": "フィーリラ", "青": "アジュール", "緑": "ヴェルディア", "黒": "メランペプロス"
+    const baseMainStats = {
+      "体力": 30,
+      "筋力": 30,
+      "精神": 30,
+      "俊敏": 30,
+      "器用": 30,
+      "知力": 30
     };
 
-    function updateRegion() {
-      const color = document.getElementById("color").value;
-      document.getElementById("region").textContent = regionMap[color];
+    const skillsList = [
+      "威圧", "交渉", "乗馬", "水泳", "登攀", "追跡", "知識", "芸術", "創作", "礼儀作法", "回避", "隠密"
+    ];
+
+    let skillPoints = 1000;
+    const skillData = {};
+    const additionalSkills = [];
+    const abilities = [];
+
+    function updateSkillPoints() {
+      document.getElementById("skill-points").textContent = skillPoints;
     }
 
-    function calcCost(current, base = 30) {
-      let cost = 0;
-      for (let i = 0; i < current; i++) {
-        cost += (base + i) >= 100 ? 2 : 1;
+    function calculateCost(current) {
+      return current >= 100 ? 2 : 1;
+    }
+
+    function createStatBlock(name, value, onChange) {
+      const block = document.createElement("div");
+      block.className = "stat-block";
+
+      const label = document.createElement("span");
+      label.textContent = name + "（基礎値）: " + value;
+
+      const input = document.createElement("input");
+      input.type = "number";
+      input.min = 0;
+      input.value = 0;
+      input.addEventListener("input", () => onChange(name, value, parseInt(input.value)));
+
+      const allocationLabel = document.createElement("span");
+      allocationLabel.textContent = "割り振り";
+
+      block.appendChild(label);
+      block.appendChild(allocationLabel);
+      block.appendChild(input);
+
+      return block;
+    }
+
+    function renderMainStats() {
+      const container = document.getElementById("main-status");
+      container.innerHTML = "";
+      for (let [name, value] of Object.entries(baseMainStats)) {
+        container.appendChild(createStatBlock(name, value, handleMainStatChange));
       }
-      return cost;
     }
 
-    function updateStats() {
-      const base = 30;
-      const keys = ["体", "精", "筋", "俊", "器", "知"];
-      let totalCost = 0;
-      let stats = {};
-      keys.forEach(key => {
-        let add = parseInt(document.getElementById("add_" + key).value) || 0;
-        stats[key] = base + add;
-        totalCost += calcCost(add);
+    function handleMainStatChange(name, base, value) {
+      const total = base + value;
+      let cost = 0;
+      for (let i = 1; i <= value; i++) {
+        cost += calculateCost(base + i - 1);
+      }
+      if (skillPoints + skillData[name] >= cost) {
+        skillPoints = skillPoints + skillData[name] - cost;
+        skillData[name] = cost;
+        updateSkillPoints();
+      } else {
+        alert("スキルポイントが足りません");
+      }
+    }
+
+    function renderCombatStats() {
+      const container = document.getElementById("combat-status");
+      container.innerHTML = "";
+      for (let [name, value] of Object.entries(baseMainStats)) {
+        container.appendChild(createStatBlock(name, value, handleMainStatChange));
+      }
+    }
+
+    function addSkill(name = "", editable = true) {
+      const block = document.createElement("div");
+      block.className = "skill-block";
+
+      const inputName = document.createElement("input");
+      inputName.value = name;
+      inputName.disabled = !editable;
+
+      const inputValue = document.createElement("input");
+      inputValue.type = "number";
+      inputValue.min = 0;
+      inputValue.value = 0;
+      inputValue.addEventListener("input", () => {
+        const value = parseInt(inputValue.value);
+        let cost = 0;
+        for (let i = 1; i <= value; i++) {
+          cost += calculateCost(i - 1);
+        }
+        if (skillPoints + (skillData[name] || 0) >= cost) {
+          skillPoints = skillPoints + (skillData[name] || 0) - cost;
+          skillData[name] = cost;
+          updateSkillPoints();
+        } else {
+          alert("スキルポイントが足りません");
+        }
       });
-      let remaining = 250 - totalCost;
-      document.getElementById("remainingPoints").textContent = remaining;
-      document.getElementById("remainingPoints").style.color = remaining < 0 ? "red" : "black";
 
-      let HP = 60 + Math.floor(stats["体"] / 5);
-      let MP = 30 + Math.floor(stats["精"] / 5);
-      let DEF = Math.floor(stats["筋"] / 20);
-      let SPD = 20 + Math.floor(stats["俊"] / 10);
-      let DLY = 25 - Math.floor(stats["器"] / 50);
-      let combatBase = 45 + Math.floor(stats["知"] / 10);
+      const deleteBtn = document.createElement("button");
+      deleteBtn.textContent = "削除";
+      deleteBtn.addEventListener("click", () => {
+        block.remove();
+        skillPoints += skillData[name] || 0;
+        delete skillData[name];
+        updateSkillPoints();
+      });
 
-      let addHP = parseInt(document.getElementById("add_HP").value) || 0;
-      let addMP = parseInt(document.getElementById("add_MP").value) || 0;
-      let addDEF = parseInt(document.getElementById("add_DEF").value) || 0;
-      let addSPD = parseInt(document.getElementById("add_SPD").value) || 0;
-      let addDLY = parseInt(document.getElementById("add_DLY").value) || 0;
+      block.appendChild(inputName);
+      block.appendChild(inputValue);
+      block.appendChild(deleteBtn);
 
-      let usedCombat = addHP + addMP + addDEF * 4 + addSPD * 2 + addDLY * 10;
-      let remainCombat = combatBase - usedCombat;
-      document.getElementById("combatPoints").textContent = remainCombat;
-      document.getElementById("combatPoints").style.color = remainCombat < 0 ? "red" : "black";
-
-      document.getElementById("sta_HP").value = HP;
-      document.getElementById("sta_MP").value = MP;
-      document.getElementById("sta_DEF").value = DEF;
-      document.getElementById("sta_SPD").value = SPD;
-      document.getElementById("sta_DLY").value = DLY;
-
-      document.getElementById("total_HP").value = HP + addHP;
-      document.getElementById("total_MP").value = MP + addMP;
-      document.getElementById("total_DEF").value = DEF + addDEF;
-      document.getElementById("total_SPD").value = SPD + addSPD;
-      document.getElementById("total_DLY").value = DLY + addDLY;
+      document.getElementById("skills").appendChild(block);
     }
 
     function addAbility() {
-      const container = document.getElementById("abilities");
-      const div = document.createElement("div");
-      div.className = "ability-entry";
-      div.innerHTML = `
-        <input type="text" placeholder="技能名">
-        <input type="number" value="0" oninput="updateAbilities()">
-        <button onclick="this.parentElement.remove(); updateAbilities()">削除</button>
-      `;
-      container.appendChild(div);
-    }
+      if (skillPoints < 100) {
+        alert("スキルポイントが足りません");
+        return;
+      }
+      skillPoints -= 100;
+      updateSkillPoints();
 
-    function updateAbilities() {
-      const entries = document.querySelectorAll("#abilities .ability-entry");
-      let total = 0;
-      entries.forEach(entry => {
-        const points = parseInt(entry.children[1].value) || 0;
-        total += calcCost(points, 0);
+      const block = document.createElement("div");
+      block.className = "ability-block";
+
+      const nameInput = document.createElement("input");
+      nameInput.placeholder = "スキル名";
+
+      const effectInput = document.createElement("input");
+      effectInput.placeholder = "効果";
+
+      const deleteBtn = document.createElement("button");
+      deleteBtn.textContent = "削除";
+      deleteBtn.addEventListener("click", () => {
+        block.remove();
+        skillPoints += 100;
+        updateSkillPoints();
       });
-      const remain = 1000 - total - document.querySelectorAll("#skills .skill-entry").length * 100;
-      document.getElementById("skillPoints").textContent = remain;
+
+      block.appendChild(nameInput);
+      block.appendChild(effectInput);
+      block.appendChild(deleteBtn);
+
+      document.getElementById("abilities").appendChild(block);
     }
 
-    function addSkill() {
-      const container = document.getElementById("skills");
-      const skillPoints = parseInt(document.getElementById("skillPoints").textContent);
-      if (skillPoints < 100) return;
-
-      const div = document.createElement("div");
-      div.className = "skill-entry";
-      div.innerHTML = `
-        <input type="text" placeholder="スキル名">
-        <input type="text" placeholder="効果">
-        <button onclick="this.parentElement.remove(); updateAbilities()">削除</button>
-      `;
-      container.appendChild(div);
-      updateAbilities();
+    function initialize() {
+      renderMainStats();
+      renderCombatStats();
+      skillsList.forEach(skill => addSkill(skill, false));
+      updateSkillPoints();
     }
 
-    window.onload = updateStats;
+    initialize();
   </script></body>
 </html>
