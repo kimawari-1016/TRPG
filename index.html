@@ -2,53 +2,51 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>キャラ作成</title>
+  <title>TRPGキャラ作成</title>
   <style>
-    .status-row {
+    .status-group {
       display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
+      gap: 20px;
+      margin-bottom: 10px;
     }
-    .status-item {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+    .status-box {
       border: 1px solid #ccc;
-      padding: 8px;
-      border-radius: 6px;
+      padding: 10px;
+      width: 130px;
+      text-align: center;
     }
-    .stat-block {
-      margin: 4px 0;
+    .status-box input {
+      width: 60px;
+      text-align: center;
     }
   </style>
 </head>
 <body>
-  <h1>TRPGキャラ作成</h1>
+  <h1>キャラクター作成</h1>
 
-  <label for="name">名前:</label>
-  <input type="text" id="name"><br><br>
+  <label>名前：<input type="text" id="name"></label><br>
+  <label>年齢：<input type="number" id="age"></label><br><br>
 
-  <label for="age">年齢:</label>
-  <input type="number" id="age"><br><br>
+  <label>特色：
+    <select id="color" onchange="updateRegion()">
+      <option value="白">白</option>
+      <option value="黄">黄</option>
+      <option value="橙">橙</option>
+      <option value="赤">赤</option>
+      <option value="紫">紫</option>
+      <option value="青">青</option>
+      <option value="緑">緑</option>
+      <option value="黒">黒</option>
+    </select>
+  </label>
 
-  <label for="color">特色:</label>
-  <select id="color" onchange="updateRegion()">
-    <option value="白">白</option>
-    <option value="黄">黄</option>
-    <option value="橙">橙</option>
-    <option value="赤">赤</option>
-    <option value="紫">紫</option>
-    <option value="青">青</option>
-    <option value="緑">緑</option>
-    <option value="黒">黒</option>
-  </select>
-  <span>地域: <span id="region">シストベリ</span></span>
+  <span id="region">シストベリ</span>
 
   <h2>ステータス</h2>
   <p>割り振り可能ポイント: <span id="point-pool">250</span></p>
 
-  <div class="status-row" id="status-container">
-    <!-- JavaScriptで自動生成 -->
+  <div class="status-group" id="status-container">
+    <!-- 各ステータスの入力枠がここに追加されます -->
   </div>
 
   <script>
@@ -65,77 +63,74 @@
 
     function updateRegion() {
       const color = document.getElementById("color").value;
-      document.getElementById("region").textContent = regionMap[color] || "";
+      document.getElementById("region").textContent = regionMap[color];
     }
 
-    const statusList = [
-      { id: "vitality", label: "体力" },
-      { id: "spirit", label: "精神" },
-      { id: "strength", label: "筋力" },
-      { id: "agility", label: "俊敏" },
-      { id: "dexterity", label: "器用" },
-      { id: "intelligence", label: "知力" }
-    ];
-
-    const baseStat = 30;
     const maxPoints = 250;
+    const baseStat = 30;
+
+    const statusList = [
+      { name: "体力", id: "vitality" },
+      { name: "精神", id: "spirit" },
+      { name: "筋力", id: "strength" },
+      { name: "俊敏", id: "agility" },
+      { name: "器用", id: "dexterity" },
+      { name: "知力", id: "intelligence" }
+    ];
 
     function createStatusInputs() {
       const container = document.getElementById("status-container");
+
       statusList.forEach(stat => {
-        const item = document.createElement("div");
-        item.className = "status-item";
-        item.innerHTML = `
-          <strong>${stat.label}</strong>
-          <div class="stat-block">現在値<br><input type="number" value="${baseStat}" readonly id="${stat.id}-current"></div>
-          <div class="stat-block">割り振り<br><input type="number" value="0" min="0" id="${stat.id}-add"></div>
+        const box = document.createElement("div");
+        box.className = "status-box";
+
+        box.innerHTML = `
+          <div>${stat.name}</div>
+          <div>
+            <label>基礎値<br>
+              <input type="number" id="${stat.id}-current" value="${baseStat}" readonly>
+            </label>
+          </div>
+          <div>
+            <label>割り振り<br>
+              <input type="number" id="${stat.id}-add" value="0" min="0" oninput="updatePoints()">
+            </label>
+          </div>
         `;
-        container.appendChild(item);
+
+        container.appendChild(box);
       });
     }
 
     function updatePoints() {
-  let totalCost = 0;
+      let totalCost = 0;
 
-  statusList.forEach(stat => {
-    const addValue = parseInt(document.getElementById(`${stat.id}-add`).value) || 0;
-    const currentValue = baseStat + addValue;
+      statusList.forEach(stat => {
+        const addValue = parseInt(document.getElementById(`${stat.id}-add`).value) || 0;
+        const currentValue = baseStat + addValue;
 
-    // コスト計算：100以下は1P、101以上は超過分だけ2Pずつ消費
-    let cost = 0;
-    for (let i = 1; i <= addValue; i++) {
-      const value = baseStat + i;
-      cost += (value > 100) ? 2 : 1;
-    }
+        // コスト計算：100以下は1、101以降は2
+        let cost = 0;
+        for (let i = 1; i <= addValue; i++) {
+          const value = baseStat + i;
+          cost += (value > 100) ? 2 : 1;
+        }
 
-    totalCost += cost;
+        totalCost += cost;
 
-    // 現在値を更新
-    const currentInput = document.getElementById(`${stat.id}-current`);
-    currentInput.value = currentValue;
-  });
+        // 現在値の更新
+        document.getElementById(`${stat.id}-current`).value = currentValue;
+      });
 
-  const remaining = maxPoints - totalCost;
-  const pointPool = document.getElementById("point-pool");
-  pointPool.textContent = remaining;
-  pointPool.style.color = (remaining < 0) ? "red" : "black";
-});
-
-      const remaining = maxPoints - totalSpent;
+      const remaining = maxPoints - totalCost;
       const pointPool = document.getElementById("point-pool");
       pointPool.textContent = remaining;
       pointPool.style.color = (remaining < 0) ? "red" : "black";
     }
 
-    window.addEventListener("DOMContentLoaded", () => {
-      createStatusInputs();
-      updateRegion();
-      updatePoints();
-
-      statusList.forEach(stat => {
-        document.getElementById(`${stat.id}-add`).addEventListener("input", updatePoints);
-      });
-    });
+    // 初期化
+    createStatusInputs();
   </script>
 </body>
 </html>
