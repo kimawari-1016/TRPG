@@ -95,14 +95,31 @@
     }
 
     function updatePoints() {
-      let totalSpent = 0;
-      statusList.forEach(stat => {
-        const addValue = parseInt(document.getElementById(`${stat.id}-add`).value) || 0;
-        totalSpent += addValue;
+  let totalCost = 0;
 
-        const currentInput = document.getElementById(`${stat.id}-current`);
-        currentInput.value = baseStat + addValue;
-      });
+  statusList.forEach(stat => {
+    const addValue = parseInt(document.getElementById(`${stat.id}-add`).value) || 0;
+    const currentValue = baseStat + addValue;
+
+    // コスト計算：100以下は1P、101以上は超過分だけ2Pずつ消費
+    let cost = 0;
+    for (let i = 1; i <= addValue; i++) {
+      const value = baseStat + i;
+      cost += (value > 100) ? 2 : 1;
+    }
+
+    totalCost += cost;
+
+    // 現在値を更新
+    const currentInput = document.getElementById(`${stat.id}-current`);
+    currentInput.value = currentValue;
+  });
+
+  const remaining = maxPoints - totalCost;
+  const pointPool = document.getElementById("point-pool");
+  pointPool.textContent = remaining;
+  pointPool.style.color = (remaining < 0) ? "red" : "black";
+});
 
       const remaining = maxPoints - totalSpent;
       const pointPool = document.getElementById("point-pool");
