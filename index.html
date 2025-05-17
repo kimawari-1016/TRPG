@@ -13,6 +13,12 @@
       display: flex;
       flex-direction: column;
       align-items: center;
+      border: 1px solid #ccc;
+      padding: 8px;
+      border-radius: 6px;
+    }
+    .stat-block {
+      margin: 4px 0;
     }
   </style>
 </head>
@@ -20,10 +26,10 @@
   <h1>TRPGキャラ作成</h1>
 
   <label for="name">名前:</label>
-  <input type="text" id="name" name="name"><br><br>
+  <input type="text" id="name"><br><br>
 
   <label for="age">年齢:</label>
-  <input type="number" id="age" name="age"><br><br>
+  <input type="number" id="age"><br><br>
 
   <label for="color">特色:</label>
   <select id="color" onchange="updateRegion()">
@@ -36,36 +42,13 @@
     <option value="緑">緑</option>
     <option value="黒">黒</option>
   </select>
-
   <span>地域: <span id="region">シストベリ</span></span>
 
   <h2>ステータス</h2>
   <p>割り振り可能ポイント: <span id="point-pool">250</span></p>
-  <div class="status-row">
-    <div class="status-item">
-      <label for="vitality">体力</label>
-      <input type="number" id="vitality" value="30" min="0">
-    </div>
-    <div class="status-item">
-      <label for="spirit">精神</label>
-      <input type="number" id="spirit" value="30" min="0">
-    </div>
-    <div class="status-item">
-      <label for="strength">筋力</label>
-      <input type="number" id="strength" value="30" min="0">
-    </div>
-    <div class="status-item">
-      <label for="agility">俊敏</label>
-      <input type="number" id="agility" value="30" min="0">
-    </div>
-    <div class="status-item">
-      <label for="dexterity">器用</label>
-      <input type="number" id="dexterity" value="30" min="0">
-    </div>
-    <div class="status-item">
-      <label for="intelligence">知力</label>
-      <input type="number" id="intelligence" value="30" min="0">
-    </div>
+
+  <div class="status-row" id="status-container">
+    <!-- JavaScriptで自動生成 -->
   </div>
 
   <script>
@@ -85,29 +68,54 @@
       document.getElementById("region").textContent = regionMap[color] || "";
     }
 
-    function updatePoints() {
-      const basePoints = 250;
-      const baseStat = 30;
-      const fields = ["vitality", "spirit", "strength", "agility", "dexterity", "intelligence"];
-      let totalSpent = 0;
+    const statusList = [
+      { id: "vitality", label: "体力" },
+      { id: "spirit", label: "精神" },
+      { id: "strength", label: "筋力" },
+      { id: "agility", label: "俊敏" },
+      { id: "dexterity", label: "器用" },
+      { id: "intelligence", label: "知力" }
+    ];
 
-      fields.forEach(id => {
-        const value = parseInt(document.getElementById(id).value) || 0;
-        totalSpent += Math.max(0, value - baseStat);
+    const baseStat = 30;
+    const maxPoints = 250;
+
+    function createStatusInputs() {
+      const container = document.getElementById("status-container");
+      statusList.forEach(stat => {
+        const item = document.createElement("div");
+        item.className = "status-item";
+        item.innerHTML = `
+          <strong>${stat.label}</strong>
+          <div class="stat-block">基礎値<br><input type="number" value="${baseStat}" readonly id="${stat.id}-base"></div>
+          <div class="stat-block">割り振り<br><input type="number" value="0" min="0" id="${stat.id}-add"></div>
+          <div class="stat-block">合計値<br><input type="number" value="${baseStat}" readonly id="${stat.id}-total"></div>
+        `;
+        container.appendChild(item);
+      });
+    }
+
+    function updatePoints() {
+      let totalSpent = 0;
+      statusList.forEach(stat => {
+        const addValue = parseInt(document.getElementById(`${stat.id}-add`).value) || 0;
+        totalSpent += addValue;
+        document.getElementById(`${stat.id}-total`).value = baseStat + addValue;
       });
 
-      const remaining = basePoints - totalSpent;
-      const pointDisplay = document.getElementById("point-pool");
-      pointDisplay.textContent = remaining;
-      pointDisplay.style.color = (remaining < 0) ? "red" : "black";
+      const remaining = maxPoints - totalSpent;
+      const pointPool = document.getElementById("point-pool");
+      pointPool.textContent = remaining;
+      pointPool.style.color = (remaining < 0) ? "red" : "black";
     }
 
     window.addEventListener("DOMContentLoaded", () => {
+      createStatusInputs();
       updateRegion();
       updatePoints();
-      const inputs = document.querySelectorAll('.status-item input');
-      inputs.forEach(input => {
-        input.addEventListener("input", updatePoints);
+
+      statusList.forEach(stat => {
+        document.getElementById(`${stat.id}-add`).addEventListener("input", updatePoints);
       });
     });
   </script>
