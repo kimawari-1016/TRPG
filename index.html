@@ -2,11 +2,11 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>キャラクター作成</title>
+  <title>キャラ作成</title>
   <style>
     .status-row {
       display: flex;
-      gap: 1em;
+      gap: 10px;
       flex-wrap: wrap;
     }
     .status-item {
@@ -14,109 +14,102 @@
       flex-direction: column;
       align-items: center;
     }
-    .status-item input {
-      width: 60px;
-      text-align: center;
-    }
   </style>
-<script>
-  const regionMap = {
-    "白": "シストベリ",
-    "黄": "黄華",
-    "橙": "燈火祖界",
-    "赤": "極紅",
-    "紫": "フィーリラ",
-    "青": "アジュール",
-    "緑": "ヴェルディア",
-    "黒": "メランペプロス"
-  };
-
-  function updateRegion() {
-    const color = document.getElementById("color").value;
-    document.getElementById("region").textContent = regionMap[color] || "";
-  }
-
-  function updatePoints() {
-    const basePoints = 250;
-    const fields = ["vitality", "spirit", "strength", "agility", "dexterity", "intelligence"];
-    let total = 0;
-
-    fields.forEach(id => {
-      const value = parseInt(document.getElementById(id).value) || 0;
-      total += value;
-    });
-
-    const remaining = basePoints - total;
-    document.getElementById("point-pool").textContent = remaining;
-
-    // もしマイナスになったら赤文字で警告
-    const pointDisplay = document.getElementById("point-pool");
-    pointDisplay.style.color = (remaining < 0) ? "red" : "black";
-  }
-
-  window.addEventListener("DOMContentLoaded", () => {
-    updateRegion();
-    const inputs = document.querySelectorAll('.status-item input');
-    inputs.forEach(input => {
-      input.addEventListener("input", updatePoints);
-    });
-  });
-</script>
 </head>
 <body>
-  <h1>TRPGキャラクター作成</h1>
+  <h1>TRPGキャラ作成</h1>
 
-  <form>
-    <label for="name">名前：</label>
-    <input type="text" id="name" name="name"><br><br>
+  <label for="name">名前:</label>
+  <input type="text" id="name" name="name"><br><br>
 
-    <label for="age">年齢：</label>
-    <input type="number" id="age" name="age" min="0"><br><br>
+  <label for="age">年齢:</label>
+  <input type="number" id="age" name="age"><br><br>
 
-    <label for="color">特色：</label>
-    <select id="color" name="color" onchange="updateRegion()">
-      <option value="白">白</option>
-      <option value="黄">黄</option>
-      <option value="橙">橙</option>
-      <option value="赤">赤</option>
-      <option value="紫">紫</option>
-      <option value="青">青</option>
-      <option value="緑">緑</option>
-      <option value="黒">黒</option>
-    </select>
+  <label for="color">特色:</label>
+  <select id="color" onchange="updateRegion()">
+    <option value="白">白</option>
+    <option value="黄">黄</option>
+    <option value="橙">橙</option>
+    <option value="赤">赤</option>
+    <option value="紫">紫</option>
+    <option value="青">青</option>
+    <option value="緑">緑</option>
+    <option value="黒">黒</option>
+  </select>
 
-    <span id="region" style="margin-left: 1em; font-weight: bold;"></span><br><br>
+  <span>地域: <span id="region">シストベリ</span></span>
 
-<h2>ステータス</h2>
-<p>割り振り可能ポイント: <span id="point-pool">250</span></p>
-<div class="status-row">
-  <div class="status-item">
-    <label for="vitality">体力</label>
-    <input type="number" id="vitality" name="vitality" min="0">
+  <h2>ステータス</h2>
+  <p>割り振り可能ポイント: <span id="point-pool">250</span></p>
+  <div class="status-row">
+    <div class="status-item">
+      <label for="vitality">体力</label>
+      <input type="number" id="vitality" value="30" min="0">
+    </div>
+    <div class="status-item">
+      <label for="spirit">精神</label>
+      <input type="number" id="spirit" value="30" min="0">
+    </div>
+    <div class="status-item">
+      <label for="strength">筋力</label>
+      <input type="number" id="strength" value="30" min="0">
+    </div>
+    <div class="status-item">
+      <label for="agility">俊敏</label>
+      <input type="number" id="agility" value="30" min="0">
+    </div>
+    <div class="status-item">
+      <label for="dexterity">器用</label>
+      <input type="number" id="dexterity" value="30" min="0">
+    </div>
+    <div class="status-item">
+      <label for="intelligence">知力</label>
+      <input type="number" id="intelligence" value="30" min="0">
+    </div>
   </div>
-  <div class="status-item">
-    <label for="spirit">精神</label>
-    <input type="number" id="spirit" name="spirit" min="0">
-  </div>
-  <div class="status-item">
-    <label for="strength">筋力</label>
-    <input type="number" id="strength" name="strength" min="0">
-  </div>
-  <div class="status-item">
-    <label for="agility">俊敏</label>
-    <input type="number" id="agility" name="agility" min="0">
-  </div>
-  <div class="status-item">
-    <label for="dexterity">器用</label>
-    <input type="number" id="dexterity" name="dexterity" min="0">
-  </div>
-  <div class="status-item">
-    <label for="intelligence">知力</label>
-    <input type="number" id="intelligence" name="intelligence" min="0">
-  </div>
-</div><br>
 
-    <button type="submit">保存</button>
-  </form>
+  <script>
+    const regionMap = {
+      "白": "シストベリ",
+      "黄": "黄華",
+      "橙": "燈火祖界",
+      "赤": "極紅",
+      "紫": "フィーリラ",
+      "青": "アジュール",
+      "緑": "ヴェルディア",
+      "黒": "メランペプロス"
+    };
+
+    function updateRegion() {
+      const color = document.getElementById("color").value;
+      document.getElementById("region").textContent = regionMap[color] || "";
+    }
+
+    function updatePoints() {
+      const basePoints = 250;
+      const baseStat = 30;
+      const fields = ["vitality", "spirit", "strength", "agility", "dexterity", "intelligence"];
+      let totalSpent = 0;
+
+      fields.forEach(id => {
+        const value = parseInt(document.getElementById(id).value) || 0;
+        totalSpent += Math.max(0, value - baseStat);
+      });
+
+      const remaining = basePoints - totalSpent;
+      const pointDisplay = document.getElementById("point-pool");
+      pointDisplay.textContent = remaining;
+      pointDisplay.style.color = (remaining < 0) ? "red" : "black";
+    }
+
+    window.addEventListener("DOMContentLoaded", () => {
+      updateRegion();
+      updatePoints();
+      const inputs = document.querySelectorAll('.status-item input');
+      inputs.forEach(input => {
+        input.addEventListener("input", updatePoints);
+      });
+    });
+  </script>
 </body>
 </html>
