@@ -3,6 +3,22 @@
 <head>
   <meta charset="UTF-8">
   <title>キャラクター作成</title>
+  <style>
+    .status-row {
+      display: flex;
+      gap: 1em;
+      flex-wrap: wrap;
+    }
+    .status-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .status-item input {
+      width: 60px;
+      text-align: center;
+    }
+  </style>
   <script>
     function updateRegion() {
       const color = document.getElementById("color").value;
@@ -19,7 +35,7 @@
       document.getElementById("region").textContent = regionMap[color] || "";
     }
 
-    window.addEventListener("DOMContentLoaded", updateRegion); // 初期化時にも表示
+    window.addEventListener("DOMContentLoaded", updateRegion);
   </script>
 </head>
 <body>
@@ -45,6 +61,34 @@
     </select>
 
     <span id="region" style="margin-left: 1em; font-weight: bold;"></span><br><br>
+
+    <h2>ステータス</h2>
+    <div class="status-row">
+      <div class="status-item">
+        <label for="vitality">体力</label>
+        <input type="number" id="vitality" name="vitality" min="0">
+      </div>
+      <div class="status-item">
+        <label for="spirit">精神</label>
+        <input type="number" id="spirit" name="spirit" min="0">
+      </div>
+      <div class="status-item">
+        <label for="strength">筋力</label>
+        <input type="number" id="strength" name="strength" min="0">
+      </div>
+      <div class="status-item">
+        <label for="agility">俊敏</label>
+        <input type="number" id="agility" name="agility" min="0">
+      </div>
+      <div class="status-item">
+        <label for="dexterity">器用</label>
+        <input type="number" id="dexterity" name="dexterity" min="0">
+      </div>
+      <div class="status-item">
+        <label for="intelligence">知力</label>
+        <input type="number" id="intelligence" name="intelligence" min="0">
+      </div>
+    </div><br>
 
     <button type="submit">保存</button>
   </form>
