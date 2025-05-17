@@ -1,203 +1,134 @@
 <!DOCTYPE html><html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TRPGキャラクターシート</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>キャラクターシート</title>
   <style>
     body { font-family: sans-serif; padding: 10px; }
-    .section { margin-bottom: 30px; }
-    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-    th, td { border: 1px solid #ccc; padding: 5px; text-align: left; }
-    input[type="number"], input[type="text"] { width: 100%; box-sizing: border-box; }
-    button { margin-top: 5px; }
+    .section { margin-bottom: 20px; }
+    .field-row { display: flex; align-items: center; margin-bottom: 5px; }
+    .field-row input[type="number"] { width: 60px; margin-left: 5px; }
+    .label { width: 120px; }
+    .btn { margin-left: 5px; }
+    .subsection { margin-top: 10px; }
   </style>
 </head>
 <body>
-  <h1>TRPGキャラクターシート</h1>  <div class="section">
-    <h2>メインステータス（割り振りポイント残り：<span id="mainPoints">250</span>）</h2>
-    <table id="mainStatus">
-      <thead><tr><th>項目</th><th>基礎値</th><th>割り振り</th></tr></thead>
-      <tbody></tbody>
-    </table>
+  <h1>キャラクターシート</h1>
+  <div class="section">
+    <strong>ステータスポイント: <span id="statPoints">250</span></strong>
+  </div>  <div class="section">
+    <h2>メインステータス</h2>
+    <div id="mainStats"></div>
   </div>  <div class="section">
     <h2>戦闘ステータス</h2>
-    <table id="combatStatus">
-      <thead><tr><th>項目</th><th>基礎値</th><th>割り振り</th><th>計算値</th></tr></thead>
-      <tbody></tbody>
-    </table>
+    <div id="combatStats"></div>
   </div>  <div class="section">
-    <h2>スキルポイント残り：<span id="skillPoints">1000</span></h2>
+    <strong>スキルポイント: <span id="skillPoints">1000</span></strong>
   </div>  <div class="section">
     <h2>技能</h2>
-    <table id="skills">
-      <thead><tr><th>技能名</th><th>補足</th><th>割り振り</th><th>削除</th></tr></thead>
-      <tbody></tbody>
-    </table>
-    <button onclick="addSkillRow()">技能を追加</button>
+    <div id="skills"></div>
+    <button onclick="addSkill()">技能を追加</button>
   </div>  <div class="section">
     <h2>スキル</h2>
-    <div id="skillList"></div>
-    <button onclick="addSkillBlock()">スキルを追加</button>
+    <div id="customSkills"></div>
+    <button onclick="addCustomSkill()">スキルを追加</button>
   </div>  <script>
-    const mainStats = [
-      { name: '体力', base: 30 },
-      { name: '筋力', base: 30 },
-      { name: '精神', base: 30 },
-      { name: '俊敏', base: 30 },
-      { name: '器用', base: 30 },
-      { name: '知力', base: 30 }
-    ];
+    const mainStatList = ["体力", "筋力", "精神", "俊敏", "器用", "知力"];
+    const combatStatList = ["HP", "MP", "装甲値", "速度", "後隙"];
+    const fixedSkills = ["威圧", "交渉", "乗馬", "水泳", "登攀", "追跡", "知識", "芸術", "創作", "礼儀作法", "回避", "隠密"];
 
-    const combatStats = [
-      { name: 'HP', calc: () => 60 + (getStatValue('体力') * 1.5) },
-      { name: 'MP', calc: () => 30 + (getStatValue('精神') * 0.5) },
-      { name: '装甲値', calc: () => getStatValue('筋力') / 2 },
-      { name: '速度', calc: () => 20 + (getStatValue('俊敏') / 10) },
-      { name: '後隙', calc: () => Math.max(25 - Math.floor(getStatValue('俊敏') / 50), 0) }
-    ];
-
-    const fixedSkills = ['威圧', '交渉', '乗馬', '水泳', '登攀', '追跡', '知識', '芸術', '創作', '礼儀作法', '回避', '隠密'];
-
-    let mainPoints = 250;
+    let statPoints = 250;
     let skillPoints = 1000;
+    const mainStats = {};
+    const skillValues = {};
 
     function updatePoints() {
-      document.getElementById('mainPoints').textContent = mainPoints;
-      document.getElementById('skillPoints').textContent = skillPoints;
-      updateCombat();
+      document.getElementById("statPoints").innerText = statPoints;
+      document.getElementById("skillPoints").innerText = skillPoints;
     }
 
-    function getStatValue(name) {
-      const row = [...document.querySelectorAll('#mainStatus tbody tr')].find(r => r.dataset.name === name);
-      const base = parseInt(row.querySelector('.base').textContent);
-      const extra = parseInt(row.querySelector('.allocate').value || 0);
-      return base + extra;
-    }
-
-    function updateCombat() {
-      const tbody = document.querySelector('#combatStatus tbody');
-      tbody.innerHTML = '';
-      combatStats.forEach(stat => {
-        const tr = document.createElement('tr');
-        const base = document.createElement('td'); base.textContent = '-';
-        const allocate = document.createElement('td'); allocate.textContent = '-';
-        const total = document.createElement('td'); total.textContent = Math.floor(stat.calc());
-        tr.innerHTML = `<td>${stat.name}</td>`;
-        tr.appendChild(base);
-        tr.appendChild(allocate);
-        tr.appendChild(total);
-        tbody.appendChild(tr);
-      });
-    }
-
-    function buildMainStatus() {
-      const tbody = document.querySelector('#mainStatus tbody');
-      mainStats.forEach(stat => {
-        const tr = document.createElement('tr');
-        tr.dataset.name = stat.name;
-        tr.innerHTML = `
-          <td>${stat.name}</td>
-          <td class="base">${stat.base}</td>
-          <td><input type="number" min="0" class="allocate" value="0"></td>
+    function renderStats(id, list, values, isStat = true) {
+      const container = document.getElementById(id);
+      container.innerHTML = "";
+      list.forEach(name => {
+        if (!values[name]) values[name] = { base: 30, extra: 0 };
+        const total = values[name].base + values[name].extra;
+        const row = document.createElement("div");
+        row.className = "field-row";
+        row.innerHTML = `
+          <div class="label">${name}</div>
+          <div>基礎値: ${values[name].base}</div>
+          <div>割り振り: ${values[name].extra}</div>
+          <button class="btn" onclick="increaseStat('${id}', '${name}', ${isStat})">＋</button>
         `;
-        const input = tr.querySelector('input');
-        input.addEventListener('input', () => {
-          const val = parseInt(input.value || 0);
-          const cost = [...Array(val).keys()].reduce((sum, i) => sum + ((stat.base + i) >= 100 ? 2 : 1), 0);
-          const oldVal = parseInt(input.dataset.old || 0);
-          const oldCost = [...Array(oldVal).keys()].reduce((sum, i) => sum + ((stat.base + i) >= 100 ? 2 : 1), 0);
-          const diff = cost - oldCost;
-          if (mainPoints - diff < 0) {
-            alert('メインステータスポイントが足りません');
-            input.value = oldVal;
-            return;
-          }
-          mainPoints -= diff;
-          input.dataset.old = val;
-          updatePoints();
-        });
-        tbody.appendChild(tr);
+        container.appendChild(row);
       });
     }
 
-    function buildFixedSkills() {
-      const tbody = document.querySelector('#skills tbody');
-      fixedSkills.forEach(name => {
-        const tr = document.createElement('tr');
-        const supp = ['知識', '芸術', '創作'].includes(name) ? `<input type="text">` : '-';
-        tr.innerHTML = `
-          <td>${name}</td>
-          <td>${supp}</td>
-          <td><input type="number" min="0" value="0"></td>
-          <td>-</td>
-        `;
-        const input = tr.querySelector('input[type="number"]');
-        input.addEventListener('input', () => {
-          const val = parseInt(input.value || 0);
-          const cost = [...Array(val).keys()].reduce((sum, i) => sum + (i >= 100 ? 2 : 1), 0);
-          const old = parseInt(input.dataset.old || 0);
-          const oldCost = [...Array(old).keys()].reduce((sum, i) => sum + (i >= 100 ? 2 : 1), 0);
-          const diff = cost - oldCost;
-          if (skillPoints - diff < 0) {
-            alert('スキルポイントが足りません');
-            input.value = old;
-            return;
-          }
-          skillPoints -= diff;
-          input.dataset.old = val;
-          updatePoints();
-        });
-        tbody.appendChild(tr);
-      });
-    }
+    function increaseStat(section, name, isStat) {
+      const values = section === "mainStats" ? mainStats : skillValues;
+      const total = values[name].base + values[name].extra;
+      const cost = total >= 100 ? 2 : 1;
 
-    function addSkillRow() {
-      const tbody = document.querySelector('#skills tbody');
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td><input type="text"></td>
-        <td><input type="text"></td>
-        <td><input type="number" value="0"></td>
-        <td><button onclick="this.closest('tr').remove()">削除</button></td>
-      `;
-      const input = tr.querySelector('input[type="number"]');
-      input.addEventListener('input', () => {
-        const val = parseInt(input.value || 0);
-        const cost = [...Array(val).keys()].reduce((sum, i) => sum + (i >= 100 ? 2 : 1), 0);
-        const old = parseInt(input.dataset.old || 0);
-        const oldCost = [...Array(old).keys()].reduce((sum, i) => sum + (i >= 100 ? 2 : 1), 0);
-        const diff = cost - oldCost;
-        if (skillPoints - diff < 0) {
-          alert('スキルポイントが足りません');
-          input.value = old;
-          return;
-        }
-        skillPoints -= diff;
-        input.dataset.old = val;
+      if ((isStat ? statPoints : skillPoints) >= cost) {
+        values[name].extra++;
+        if (isStat) statPoints -= cost;
+        else skillPoints -= cost;
         updatePoints();
-      });
-      tbody.appendChild(tr);
+        renderStats(section, Object.keys(values), values, isStat);
+        if (section === "mainStats") calculateCombatStats();
+      } else {
+        alert("ポイントが足りません");
+      }
     }
 
-    function addSkillBlock() {
-      if (skillPoints < 100) {
-        alert('スキルポイントが足りません');
-        return;
-      }
+    function calculateCombatStats() {
+      const c = {};
+      c["HP"] = 60 + Math.floor((mainStats["体力"].base + mainStats["体力"].extra) * 1.5 / 5);
+      c["MP"] = 30 + Math.floor((mainStats["精神"].base + mainStats["精神"].extra) * 0.4 / 5);
+      c["装甲値"] = Math.floor((mainStats["筋力"].base + mainStats["筋力"].extra) / 20);
+      c["速度"] = 20 + Math.floor((mainStats["俊敏"].base + mainStats["俊敏"].extra) / 10);
+      c["後隙"] = Math.max(25 - Math.floor((mainStats["俊敏"].base + mainStats["俊敏"].extra) / 50), 0);
+
+      const container = document.getElementById("combatStats");
+      container.innerHTML = "";
+      Object.entries(c).forEach(([name, value]) => {
+        const row = document.createElement("div");
+        row.className = "field-row";
+        row.innerHTML = `<div class="label">${name}</div><div>${value}</div>`;
+        container.appendChild(row);
+      });
+    }
+
+    function addSkill() {
+      const name = prompt("技能名を入力してください");
+      if (!name || skillValues[name]) return;
+      skillValues[name] = { base: 0, extra: 0 };
+      renderStats("skills", Object.keys(skillValues), skillValues, false);
+    }
+
+    function addCustomSkill() {
+      if (skillPoints < 100) return alert("スキルポイントが足りません");
+      const container = document.getElementById("customSkills");
+      const wrapper = document.createElement("div");
+      wrapper.className = "subsection";
+      wrapper.innerHTML = `
+        <input placeholder="名前" />
+        <input placeholder="効果" />
+        <button onclick="this.parentElement.remove(); skillPoints += 100; updatePoints()">削除</button>
+      `;
+      container.appendChild(wrapper);
       skillPoints -= 100;
       updatePoints();
-      const container = document.createElement('div');
-      container.innerHTML = `
-        <hr>
-        <label>名前: <input type="text"></label><br>
-        <label>効果: <input type="text"></label><br>
-        <button onclick="this.parentNode.remove(); skillPoints += 100; updatePoints();">削除</button>
-      `;
-      document.getElementById('skillList').appendChild(container);
     }
 
-    buildMainStatus();
-    buildFixedSkills();
+    // 初期表示設定
+    mainStatList.forEach(name => mainStats[name] = { base: 30, extra: 0 });
+    fixedSkills.forEach(name => skillValues[name] = { base: 0, extra: 0 });
+    renderStats("mainStats", mainStatList, mainStats);
+    renderStats("skills", fixedSkills, skillValues, false);
+    calculateCombatStats();
     updatePoints();
   </script></body>
 </html>
