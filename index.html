@@ -19,24 +19,49 @@
       text-align: center;
     }
   </style>
-  <script>
-    function updateRegion() {
-      const color = document.getElementById("color").value;
-      const regionMap = {
-        "白": "シストベリ",
-        "黄": "黄華",
-        "橙": "燈火祖界",
-        "赤": "極紅",
-        "紫": "フィーリラ",
-        "青": "アジュール",
-        "緑": "ヴェルディア",
-        "黒": "メランペプロス"
-      };
-      document.getElementById("region").textContent = regionMap[color] || "";
-    }
+<script>
+  const regionMap = {
+    "白": "シストベリ",
+    "黄": "黄華",
+    "橙": "燈火祖界",
+    "赤": "極紅",
+    "紫": "フィーリラ",
+    "青": "アジュール",
+    "緑": "ヴェルディア",
+    "黒": "メランペプロス"
+  };
 
-    window.addEventListener("DOMContentLoaded", updateRegion);
-  </script>
+  function updateRegion() {
+    const color = document.getElementById("color").value;
+    document.getElementById("region").textContent = regionMap[color] || "";
+  }
+
+  function updatePoints() {
+    const basePoints = 250;
+    const fields = ["vitality", "spirit", "strength", "agility", "dexterity", "intelligence"];
+    let total = 0;
+
+    fields.forEach(id => {
+      const value = parseInt(document.getElementById(id).value) || 0;
+      total += value;
+    });
+
+    const remaining = basePoints - total;
+    document.getElementById("point-pool").textContent = remaining;
+
+    // もしマイナスになったら赤文字で警告
+    const pointDisplay = document.getElementById("point-pool");
+    pointDisplay.style.color = (remaining < 0) ? "red" : "black";
+  }
+
+  window.addEventListener("DOMContentLoaded", () => {
+    updateRegion();
+    const inputs = document.querySelectorAll('.status-item input');
+    inputs.forEach(input => {
+      input.addEventListener("input", updatePoints);
+    });
+  });
+</script>
 </head>
 <body>
   <h1>TRPGキャラクター作成</h1>
