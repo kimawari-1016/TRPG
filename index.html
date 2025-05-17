@@ -87,9 +87,8 @@
         item.className = "status-item";
         item.innerHTML = `
           <strong>${stat.label}</strong>
-          <div class="stat-block">基礎値<br><input type="number" value="${baseStat}" readonly id="${stat.id}-base"></div>
+          <div class="stat-block">現在値<br><input type="number" value="${baseStat}" readonly id="${stat.id}-current"></div>
           <div class="stat-block">割り振り<br><input type="number" value="0" min="0" id="${stat.id}-add"></div>
-          <div class="stat-block">合計値<br><input type="number" value="${baseStat}" readonly id="${stat.id}-total"></div>
         `;
         container.appendChild(item);
       });
@@ -100,7 +99,9 @@
       statusList.forEach(stat => {
         const addValue = parseInt(document.getElementById(`${stat.id}-add`).value) || 0;
         totalSpent += addValue;
-        document.getElementById(`${stat.id}-total`).value = baseStat + addValue;
+
+        const currentInput = document.getElementById(`${stat.id}-current`);
+        currentInput.value = baseStat + addValue;
       });
 
       const remaining = maxPoints - totalSpent;
