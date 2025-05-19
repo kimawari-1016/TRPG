@@ -37,20 +37,15 @@
 
   <div class="status-group">
     <h2>ステータス（割り振りポイント: <span id="statusPoints">250</span>）</h2>
-    <div id="statusContainer">
-      <!-- ステータス項目はここにJSで追加 -->
-    </div>
+    <div id="statusContainer"></div>
   </div>
 
   <div class="battle-group">
     <h2>戦闘用ステータス（割り振りポイント: <span id="battlePoints">45</span>）</h2>
-    <div id="battleContainer">
-      <!-- 戦闘用ステータス項目はここにJSで追加 -->
-    </div>
+    <div id="battleContainer"></div>
   </div>
 
 <script>
-  // 特色と地域名対応
   const traitToRegion = {
     白: "シストベリ",
     黄: "黄華",
@@ -67,23 +62,15 @@
     regionName.textContent = traitToRegion[traitSelect.value];
   });
 
-  // ステータス情報
   const statusList = ["体力", "精神", "筋力", "俊敏", "器用", "知力"];
-  const baseValue = 30; // 基礎値30固定
-  let statusPoints = 250; // 割り振り可能ポイント
+  const baseValue = 30;
+  let statusPoints = 250;
 
-  // 戦闘用ステータス計算のための現在ステータス値格納
   const currentStatus = {};
-  // 割り振り値格納
   const statusAlloc = {};
-  // 戦闘用ポイント初期値（45+知力÷10（切り捨て））
   let battlePoints = 45;
-
-  // 戦闘用ステータス初期ポイント
   let battleAllocPoints = 0;
 
-  // 戦闘用ステータスリスト
-  // 基礎値計算式は関数で定義
   const battleStats = {
     HP: {
       calcBase: () => 60 + Math.floor(currentStatus["体力"] / 5),
@@ -114,20 +101,15 @@
       costPerPoint: 10,
       alloc: 0,
       label: "後隙",
-      reverse: true, // -1あたり10ポイント消費（減らす方向）
+      reverse: true,
     },
   };
 
-  // 割り振りポイント表示要素
   const statusPointsEl = document.getElementById("statusPoints");
   const battlePointsEl = document.getElementById("battlePoints");
-
-  // ステータス表示部分
   const statusContainer = document.getElementById("statusContainer");
-  // 戦闘用ステータス表示部分
   const battleContainer = document.getElementById("battleContainer");
 
-  // ステータス入力欄作成
   statusList.forEach((stat) => {
     currentStatus[stat] = baseValue;
     statusAlloc[stat] = 0;
@@ -137,67 +119,40 @@
 
     div.innerHTML = `
       <label>${stat}</label><br>
-      基礎値: <input type="number" class="baseInput" value="${baseValue}" min="0" readonly style="width:50px" /> 
+      基礎値: <input type="number" class="baseInput" value="${baseValue}" readonly style="width:50px" /> 
       割り振り: <input type="number" class="allocInput" value="0" min="0" style="width:50px" />
     `;
 
     statusContainer.appendChild(div);
 
-    // 割り振り入力のイベント設定
     const allocInput = div.querySelector(".allocInput");
     const baseInput = div.querySelector(".baseInput");
 
     allocInput.addEventListener("input", () => {
       let val = parseInt(allocInput.value);
-      if (isNaN(val) || val < 0) {
-        val = 0;
-      }
+      if (isNaN(val) || val < 0) val = 0;
 
-      // 計算：コスト判定
-      // 合計値 = baseValue + val
-      // 30は基礎値として固定なのでここで計算対象外
-      // 割り振り値のコストは、最初の70までは1ポイント、71以上は2ポイント
+      let cost = val <= 70 ? val : 70 + (val - 70) * 2;
 
-      // 実際に割り振ったポイントコストを計算
-      // 例: val=80なら70*1 + (80-70)*2=70 + 20=90ポイント消費
-      let cost = 0;
-      if (val <= 70) {
-        cost = val;
-      } else {
-        cost = 70 + (val - 70) * 2;
-      }
-
-      // まだ使えるポイント内かチェック
-      // 全ステータスの合計コスト計算をするために、一旦仮で現在の割り振り値を保存
       const tempAlloc = { ...statusAlloc };
       tempAlloc[stat] = val;
 
-      // 全体コスト計算
       let totalCost = 0;
       for (const s in tempAlloc) {
         const v = tempAlloc[s];
-        if (v <= 70) {
-          totalCost += v;
-        } else {
-          totalCost += 70 + (v - 70) * 2;
-        }
+        totalCost += v <= 70 ? v : 70 + (v - 70) * 2;
       }
 
       if (totalCost > statusPoints) {
-        // 超過したら元に戻す（前の値に）
         allocInput.value = statusAlloc[stat];
         return;
       }
 
-      // 更新OKなら値をセット
       statusAlloc[stat] = val;
       currentStatus[stat] = baseValue + val;
       baseInput.value = currentStatus[stat];
-
-      // 残りポイント更新
       statusPointsEl.textContent = statusPoints - totalCost;
 
-      // 戦闘用ポイント再計算（知力による）
       battlePoints = 45 + Math.floor(currentStatus["知力"] / 10);
       battlePointsEl.textContent = battlePoints - battleAllocPoints;
 
@@ -205,8 +160,6 @@
       updateBattleDisplay();
     });
   });
-
-  // 戦闘用ステータスの作成・更新
 
   function updateBattleBaseValues() {
     for (const key in battleStats) {
@@ -221,11 +174,7 @@
       const div = document.createElement("div");
       div.className = "battle-item";
 
-      // 表示の合計値 = 基礎値 + 割り振り
-      let total = stat.base + stat.alloc;
-
-      // 後隙は逆方向（マイナスなので注意）
-      const totalDisplay = stat.reverse ? (stat.base + stat.alloc) : total;
+      const total = stat.reverse ? (stat.base + stat.alloc) : (stat.base + stat.alloc);
 
       div.innerHTML = `
         <label>${stat.label}</label><br>
@@ -238,40 +187,26 @@
 
       allocInput.addEventListener("input", () => {
         let val = parseInt(allocInput.value);
-        if (isNaN(val) || val < 0) {
-          val = 0;
-        }
+        if (isNaN(val) || val < 0) val = 0;
 
-        // 割り振りポイントの消費計算
-        // 後隙は -1に10ポイントなので割り振り値が増えたらマイナスに反映させる
-        // ここでは割り振り値を正の整数として扱う（後隙がマイナスなので）
-
-        // 消費ポイント
         let cost = val * stat.costPerPoint;
+        let oldCost = stat.alloc * stat.costPerPoint;
 
-        // 使えるポイント内かチェック
-        if (cost > (battlePoints - battleAllocPoints + stat.alloc * stat.costPerPoint)) {
-          // オーバーなら元に戻す
+        if (cost > (battlePoints - battleAllocPoints + oldCost)) {
           allocInput.value = stat.alloc;
           return;
         }
 
-        // ポイント更新
-        battleAllocPoints = battleAllocPoints - stat.alloc * stat.costPerPoint + cost;
-
+        battleAllocPoints = battleAllocPoints - oldCost + cost;
         stat.alloc = val;
 
         battlePointsEl.textContent = battlePoints - battleAllocPoints;
-
-        updateBattleDisplay();
       });
     }
   }
 
-  // 初期表示
   updateBattleBaseValues();
   updateBattleDisplay();
-
 </script>
 </body>
 </html>
