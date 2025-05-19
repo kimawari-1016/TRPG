@@ -65,7 +65,6 @@
   const statusList = ["体力", "精神", "筋力", "俊敏", "器用", "知力"];
   const baseValue = 30;
   let statusPoints = 250;
-
   const currentStatus = {};
   const statusAlloc = {};
   let battlePoints = 45;
@@ -119,7 +118,7 @@
 
     div.innerHTML = `
       <label>${stat}</label><br>
-      基礎値: <input type="number" class="baseInput" value="${baseValue}" readonly style="width:50px" /> 
+      基礎値: <input type="number" class="baseInput" value="${baseValue}" min="0" readonly style="width:50px" />
       割り振り: <input type="number" class="allocInput" value="0" min="0" style="width:50px" />
     `;
 
@@ -128,12 +127,11 @@
     const allocInput = div.querySelector(".allocInput");
     const baseInput = div.querySelector(".baseInput");
 
-    allocInput.addEventListener("input", () => {
+    allocInput.addEventListener("change", () => {
       let val = parseInt(allocInput.value);
       if (isNaN(val) || val < 0) val = 0;
 
       let cost = val <= 70 ? val : 70 + (val - 70) * 2;
-
       const tempAlloc = { ...statusAlloc };
       tempAlloc[stat] = val;
 
@@ -174,7 +172,7 @@
       const div = document.createElement("div");
       div.className = "battle-item";
 
-      const total = stat.reverse ? (stat.base + stat.alloc) : (stat.base + stat.alloc);
+      const totalDisplay = stat.reverse ? stat.base - stat.alloc : stat.base + stat.alloc;
 
       div.innerHTML = `
         <label>${stat.label}</label><br>
@@ -185,22 +183,22 @@
 
       const allocInput = div.querySelector(".battleAlloc");
 
-      allocInput.addEventListener("input", () => {
+      allocInput.addEventListener("change", () => {
         let val = parseInt(allocInput.value);
         if (isNaN(val) || val < 0) val = 0;
 
         let cost = val * stat.costPerPoint;
-        let oldCost = stat.alloc * stat.costPerPoint;
 
-        if (cost > (battlePoints - battleAllocPoints + oldCost)) {
+        if (cost > (battlePoints - battleAllocPoints + stat.alloc * stat.costPerPoint)) {
           allocInput.value = stat.alloc;
           return;
         }
 
-        battleAllocPoints = battleAllocPoints - oldCost + cost;
+        battleAllocPoints = battleAllocPoints - stat.alloc * stat.costPerPoint + cost;
         stat.alloc = val;
-
         battlePointsEl.textContent = battlePoints - battleAllocPoints;
+
+        updateBattleDisplay();
       });
     }
   }
